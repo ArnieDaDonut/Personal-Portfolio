@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#020617" />
+      <stop offset="100%" stop-color="#111827" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)" />
+  <circle cx="230" cy="180" r="160" fill="#3b82f6" opacity="0.22" />
+  <circle cx="930" cy="320" r="120" fill="#a78bfa" opacity="0.22" />
+  <circle cx="720" cy="120" r="90" fill="#fb7185" opacity="0.18" />
+  <circle cx="400" cy="520" r="80" fill="#facc15" opacity="0.18" />
+  <text x="600" y="350" text-anchor="middle" fill="#f8fafc" font-family="Inter, sans-serif" font-size="72" font-weight="700">
+    Space Portfolio
+  </text>
+  <text x="600" y="430" text-anchor="middle" fill="#cbd5e1" font-family="Inter, sans-serif" font-size="32">
+    Launching in 3, 2, 1...
+  </text>
+</svg>
