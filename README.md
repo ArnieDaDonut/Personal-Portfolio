@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Space Portfolio
 
 A space-themed developer portfolio built with Next.js, React, Tailwind CSS, Framer Motion, and React Bits.
@@ -20,3 +21,7 @@ A space-themed developer portfolio built with Next.js, React, Tailwind CSS, Fram
 - Press `Space` to launch the spaceship
 - Scroll through portfolio sections with a starry space theme
 - Ready for Vercel deployment
+=======
+# Personal-Portfolio
+My personal portfolio including all volunteer experience, certifications, experience, achievements etc.
+>>>>>>> 99ae164d0f12417d046c880550ec0390e729c2fc
