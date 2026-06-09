@@ -1,5 +1,5 @@
 import dynamic from 'next/dynamic';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 const HeroCanvas = dynamic(() => import('../components/HeroCanvas').then((mod) => mod.HeroCanvas), {
   ssr: false,
@@ -7,50 +7,70 @@ const HeroCanvas = dynamic(() => import('../components/HeroCanvas').then((mod) =
 
 export default function Home() {
   const [launched, setLaunched] = useState(false);
-  const [fade, setFade] = useState(false);
+  const [sceneState, setSceneState] = useState('earth'); // 'earth' or 'space'
+  const [overlayOpacity, setOverlayOpacity] = useState(0);
+  const [cameraPos, setCameraPos] = useState([0, -0.5, 20]); // Zoomed out starting position to view both astronaut and Earth
+  const [fov, setFov] = useState(38);
+  const timeoutRef = useRef(null);
+  const [fadeTransition, setFadeTransition] = useState('2.5s ease');
 
   const handleLaunchComplete = () => {
-    setFade(true);
+    // Optional
+  };
+
+  const handleLaunchStart = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+
+    // Immediately start fade to black as launch begins
+    setFadeTransition('1.0s ease');
+    setOverlayOpacity(1);
+
+    // Swap scene structure and camera once the screen is fully black
+    const transitionTimeout = setTimeout(() => {
+      setSceneState('space');
+      setCameraPos([0, 0, 7]); // closer view for floating astronaut in space
+      setFov(38);
+
+      // Fade back in to show the floating scene
+      setFadeTransition('1.5s ease');
+      setOverlayOpacity(0);
+    }, 1100);
+
+    timeoutRef.current = transitionTimeout;
   };
 
   useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     const handleSpace = (event) => {
-      if (event.code === 'Space') {
+      if (event.code === 'Space' && !launched) {
         setLaunched(true);
       }
     };
 
     window.addEventListener('keydown', handleSpace);
     return () => window.removeEventListener('keydown', handleSpace);
-  }, []);
+  }, [launched]);
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-space text-slate-100">
-      <HeroCanvas launched={launched} onLaunchComplete={handleLaunchComplete} />
-
-      {/* Fade overlay */}
-      <div className={`absolute inset-0 bg-black transition-opacity duration-2000 ${fade ? 'opacity-100' : 'opacity-0'} pointer-events-none`}></div>
-
-      <div className="pointer-events-none absolute inset-0 flex flex-col justify-between px-6 py-6 sm:px-10">
-        <div className="flex flex-col gap-4 rounded-full border border-slate-700/80 bg-slate-950/70 bg-opacity-80 p-5 text-white shadow-glow backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-xs uppercase tracking-[0.35em] text-teal-300">Space Command</p>
-            <h1 className="mt-3 text-3xl font-semibold sm:text-4xl">Astronaut mission control</h1>
-          </div>
-          <div className="text-left sm:text-right">
-            <p className="text-xs uppercase tracking-[0.35em] text-slate-400">Status</p>
-            <p className="mt-2 text-xl font-semibold text-white">{launched ? 'Engaged' : 'Standby'}</p>
-          </div>
-        </div>
-
-        <div className="mx-auto flex w-full max-w-4xl flex-col items-center gap-4 rounded-[2rem] border border-slate-700/80 bg-slate-950/80 px-6 py-6 text-center shadow-glow backdrop-blur-xl">
-          <p className="text-xs uppercase tracking-[0.35em] text-teal-300">Mission controls</p>
-          <h2 className="text-2xl font-semibold text-white sm:text-3xl">Press <span className="font-mono">Space</span> to launch</h2>
-          <p className="max-w-2xl text-slate-300">
-            Drag horizontally to look around the orbital scene. Vertical rotation is locked for smoother exploration.
-          </p>
-        </div>
-      </div>
+      <HeroCanvas
+        launched={launched}
+        sceneState={sceneState}
+        onLaunchComplete={handleLaunchComplete}
+        onLaunchStart={handleLaunchStart}
+        cameraPos={cameraPos}
+        fov={fov}
+      />
+      <div className="absolute inset-0 bg-black pointer-events-none z-50" style={{ opacity: overlayOpacity, transition: fadeTransition }}></div>
     </main>
   );
 }
