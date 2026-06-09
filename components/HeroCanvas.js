@@ -71,7 +71,7 @@ function StarField() {
   );
 }
 
-function PlanetModel({ modelPath, position, ringColor }) {
+function PlanetModel({ modelPath, position, ringColor, scale = 1.0 }) {
   const gltf = useGLTF(modelPath);
   const ref = useRef();
   // Compute uniform scale based on model's bounding box dimensions
@@ -87,13 +87,15 @@ function PlanetModel({ modelPath, position, ringColor }) {
     const targetSize = modelPath === '/saturn (1).glb' || modelPath === '/saturn.glb'
       ? baseTarget * 3.0 // double Saturn size (original 1.5 * 2)
       : modelPath === '/black_hole.glb'
-      ? baseTarget * 5.0 // double black hole size (original 2.5 * 2)
-      : baseTarget;
-    return maxDim > 0 ? targetSize / maxDim : 1.0;
-  }, [gltf]);
+        ? baseTarget * 5.0 // double black hole size (original 2.5 * 2)
+        : modelPath === '/earth.glb'
+          ? baseTarget * 2.5
+          : baseTarget;
+    return (maxDim > 0 ? targetSize / maxDim : 1.0) * scale;
+  }, [gltf, modelPath, scale]);
 
   useFrame((_, delta) => {
-    if (ref.current) ref.current.rotation.y += delta * 0.08;
+    if (ref.current && modelPath !== '/black_hole.glb') ref.current.rotation.y += delta * 0.08;
   });
 
   return (
@@ -249,18 +251,15 @@ export function HeroCanvas({ launched, sceneState, onLaunchComplete, onPeak, onL
   const planets = useMemo(() => {
     if (sceneState === 'space') {
       return [
-        // Five planets using available models
-            { modelPath: '/saturn (1).glb', position: [6 * Math.cos(0), 0, 6 * Math.sin(0)], ringColor: '#e0b7ff' },
-          { modelPath: '/earth.glb', position: [6 * Math.cos(Math.PI / 2.5), 0, 6 * Math.sin(Math.PI / 2.5)], ringColor: null },
-           { modelPath: '/planet.glb', position: [6 * Math.cos(2 * Math.PI / 2.5), 0, 6 * Math.sin(2 * Math.PI / 2.5)], ringColor: null },
-           { modelPath: '/black_hole.glb', position: [6 * Math.cos(3 * Math.PI / 2.5), 0, 6 * Math.sin(3 * Math.PI / 2.5)], ringColor: null },
-          { modelPath: '/purple_planet.glb', position: [6 * Math.cos(4 * Math.PI / 2.5), 0, 6 * Math.sin(4 * Math.PI / 2.5)], ringColor: null }
+        { modelPath: '/saturn (1).glb', position: [7.0 * Math.cos(0), 0, 7.0 * Math.sin(0)], ringColor: '#e0b7ff', scale: 1.0 },
+        { modelPath: '/earth.glb', position: [7.0 * Math.cos(Math.PI * 0.4), 0, 7.0 * Math.sin(Math.PI * 0.4)], ringColor: null, scale: 0.45 },
+        { modelPath: '/black_hole.glb', position: [8.0 * Math.cos(Math.PI * 1.2), 0, 14.0 * Math.sin(Math.PI * 1.2)], ringColor: null, scale: 0.9 },
+        { modelPath: '/planet.glb', position: [7.0 * Math.cos(Math.PI * 0.8), 0, 7.0 * Math.sin(Math.PI * 0.8)], ringColor: null, scale: 1.5 },
+        { modelPath: '/purple_planet.glb', position: [7.0 * Math.cos(Math.PI * 1.6), 0, 7.0 * Math.sin(Math.PI * 1.6)], ringColor: null, scale: 1.2 },
       ];
     } else {
       // Initial scene: a single distant Saturn
-      return [
-         { modelPath: '/saturn (1).glb', position: [5.5, 2.0, -15.0], scale: 0.8, ringColor: '#e0b7ff' },
-      ];
+      return [];
     }
   }, [sceneState]);
 
@@ -275,7 +274,7 @@ export function HeroCanvas({ launched, sceneState, onLaunchComplete, onPeak, onL
         {starField}
         <Suspense fallback={null}>
           {sceneState === 'earth' && (
-            <PlanetModel modelPath="/earth.glb" position={[0, -2.8, 0]} scale={0.03} ringColor={null} />
+            <PlanetModel modelPath="/earth.glb" position={[0, -2.8, 0]} scale={0.45} ringColor={null} />
           )}
           {planets.map((planet, index) => (
             <PlanetModel key={`${sceneState}-${index}`} {...planet} />
