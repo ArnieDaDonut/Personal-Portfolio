@@ -4,6 +4,7 @@ import { Suspense, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Stars, useGLTF } from '@react-three/drei';
 import { MathUtils } from 'three';
+import * as THREE from 'three';
 
 function FireTrail({ position, active }) {
   const ref = useRef();
@@ -70,19 +71,34 @@ function StarField() {
   );
 }
 
-function PlanetModel({ modelPath, position, scale, ringColor }) {
+function PlanetModel({ modelPath, position, ringColor }) {
   const gltf = useGLTF(modelPath);
   const ref = useRef();
-  // Safe cloning of GLTF scene to prevent resource stealing across multiple instances
-  const scene = useMemo(() => gltf.scene.clone(), [gltf.scene]);
+  // Compute uniform scale based on model's bounding box dimensions
+  const uniformScale = useMemo(() => {
+    // Ensure the scene is cloned to avoid mutating original
+    const sceneClone = gltf.scene.clone();
+    const box = new THREE.Box3().setFromObject(sceneClone);
+    const size = new THREE.Vector3();
+    box.getSize(size);
+    const maxDim = Math.max(size.x, size.y, size.z);
+    // Desired visual size (adjust as needed)
+    const baseTarget = 3.0;
+    const targetSize = modelPath === '/saturn (1).glb' || modelPath === '/saturn.glb'
+      ? baseTarget * 3.0 // double Saturn size (original 1.5 * 2)
+      : modelPath === '/black_hole.glb'
+      ? baseTarget * 5.0 // double black hole size (original 2.5 * 2)
+      : baseTarget;
+    return maxDim > 0 ? targetSize / maxDim : 1.0;
+  }, [gltf]);
 
   useFrame((_, delta) => {
     if (ref.current) ref.current.rotation.y += delta * 0.08;
   });
 
   return (
-    <group ref={ref} position={position} scale={scale}>
-      <primitive object={scene} />
+    <group ref={ref} position={position} scale={uniformScale}>
+      <primitive object={gltf.scene.clone()} />
       {ringColor ? (
         <mesh rotation={[Math.PI / 2, 0, 0]}>
           <torusGeometry args={[1.25, 0.08, 20, 120]} />
@@ -213,7 +229,7 @@ function Astronaut({ launched, sceneState, onLaunchComplete, onPeak, onLaunchSta
   const leftBoot = [0.14, -0.16, 0.05];
   const rightBoot = [-0.14, -0.16, 0.05];
 
-  const currentScale = sceneState === 'space' ? 1.8 : 1.3;
+  const currentScale = sceneState === 'space' ? 1.5 : 1.3;
   const [fadeTransition, setFadeTransition] = useState('2.5s ease');
   const initialPosition = sceneState === 'space' ? [0, 0, 0] : [0, 2, 0];
 
@@ -233,20 +249,17 @@ export function HeroCanvas({ launched, sceneState, onLaunchComplete, onPeak, onL
   const planets = useMemo(() => {
     if (sceneState === 'space') {
       return [
-        // Core planets
-        { modelPath: '/saturn.glb', position: [-4.2, 1.8, -6.5], scale: 0.55, ringColor: '#e0b7ff' },
-        { modelPath: '/earth.glb', position: [-3.8, -2.2, -7.0], scale: 0.018, ringColor: null },
-        { modelPath: '/jupiter.glb', position: [-8, 3, -12], scale: 0.7, ringColor: '#fbbf24' },
-        { modelPath: '/mars.glb', position: [6, -4, -9], scale: 0.3, ringColor: null },
-        { modelPath: '/neptune.glb', position: [2, 5, -14], scale: 0.45, ringColor: '#6ee7b7' },
-        { modelPath: '/venus.glb', position: [-5, -3, -11], scale: 0.28, ringColor: null },
-        { modelPath: '/uranus.glb', position: [9, 2, -13], scale: 0.5, ringColor: '#a5b4fc' },
-        { modelPath: '/pluto.glb', position: [0, -6, -10], scale: 0.1, ringColor: null },
+        // Five planets using available models
+            { modelPath: '/saturn (1).glb', position: [6 * Math.cos(0), 0, 6 * Math.sin(0)], ringColor: '#e0b7ff' },
+          { modelPath: '/earth.glb', position: [6 * Math.cos(Math.PI / 2.5), 0, 6 * Math.sin(Math.PI / 2.5)], ringColor: null },
+           { modelPath: '/planet.glb', position: [6 * Math.cos(2 * Math.PI / 2.5), 0, 6 * Math.sin(2 * Math.PI / 2.5)], ringColor: null },
+           { modelPath: '/black_hole.glb', position: [6 * Math.cos(3 * Math.PI / 2.5), 0, 6 * Math.sin(3 * Math.PI / 2.5)], ringColor: null },
+          { modelPath: '/purple_planet.glb', position: [6 * Math.cos(4 * Math.PI / 2.5), 0, 6 * Math.sin(4 * Math.PI / 2.5)], ringColor: null }
       ];
     } else {
       // Initial scene: a single distant Saturn
       return [
-        { modelPath: '/saturn.glb', position: [5.5, 2.0, -15.0], scale: 0.8, ringColor: '#e0b7ff' },
+         { modelPath: '/saturn (1).glb', position: [5.5, 2.0, -15.0], scale: 0.8, ringColor: '#e0b7ff' },
       ];
     }
   }, [sceneState]);
