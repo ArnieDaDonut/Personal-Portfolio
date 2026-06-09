@@ -233,13 +233,18 @@ export function HeroCanvas({ launched, sceneState, onLaunchComplete, onPeak, onL
   const planets = useMemo(() => {
     if (sceneState === 'space') {
       return [
+        // Core planets
         { modelPath: '/saturn.glb', position: [-4.2, 1.8, -6.5], scale: 0.55, ringColor: '#e0b7ff' },
-        { modelPath: '/saturn.glb', position: [4.5, -1.2, -5.8], scale: 0.45, ringColor: '#fb923c' },
         { modelPath: '/earth.glb', position: [-3.8, -2.2, -7.0], scale: 0.018, ringColor: null },
-        { modelPath: '/saturn.glb', position: [3.5, 2.5, -8.0], scale: 0.35, ringColor: '#38bdf8' },
+        { modelPath: '/jupiter.glb', position: [-8, 3, -12], scale: 0.7, ringColor: '#fbbf24' },
+        { modelPath: '/mars.glb', position: [6, -4, -9], scale: 0.3, ringColor: null },
+        { modelPath: '/neptune.glb', position: [2, 5, -14], scale: 0.45, ringColor: '#6ee7b7' },
+        { modelPath: '/venus.glb', position: [-5, -3, -11], scale: 0.28, ringColor: null },
+        { modelPath: '/uranus.glb', position: [9, 2, -13], scale: 0.5, ringColor: '#a5b4fc' },
+        { modelPath: '/pluto.glb', position: [0, -6, -10], scale: 0.1, ringColor: null },
       ];
     } else {
-      // Saturn off in the distance in the initial scene
+      // Initial scene: a single distant Saturn
       return [
         { modelPath: '/saturn.glb', position: [5.5, 2.0, -15.0], scale: 0.8, ringColor: '#e0b7ff' },
       ];
