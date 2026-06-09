@@ -7,6 +7,11 @@ const HeroCanvas = dynamic(() => import('../components/HeroCanvas').then((mod) =
 
 export default function Home() {
   const [launched, setLaunched] = useState(false);
+  const [fade, setFade] = useState(false);
+
+  const handleLaunchComplete = () => {
+    setFade(true);
+  };
 
   useEffect(() => {
     const handleSpace = (event) => {
@@ -21,7 +26,10 @@ export default function Home() {
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-space text-slate-100">
-      <HeroCanvas launched={launched} />
+      <HeroCanvas launched={launched} onLaunchComplete={handleLaunchComplete} />
+
+      {/* Fade overlay */}
+      <div className={`absolute inset-0 bg-black transition-opacity duration-2000 ${fade ? 'opacity-100' : 'opacity-0'} pointer-events-none`}></div>
 
       <div className="pointer-events-none absolute inset-0 flex flex-col justify-between px-6 py-6 sm:px-10">
         <div className="flex flex-col gap-4 rounded-full border border-slate-700/80 bg-slate-950/70 bg-opacity-80 p-5 text-white shadow-glow backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between">

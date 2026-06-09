@@ -76,7 +76,7 @@ function PlanetModel({ modelPath, position, scale, ringColor }) {
   );
 }
 
-function Astronaut({ launched }) {
+function Astronaut({ launched, onLaunchComplete }) {
   const group = useRef();
   const gltf = useGLTF('/astronaut.glb');
 
@@ -85,16 +85,30 @@ function Astronaut({ launched }) {
 
     const idleY = Math.sin(state.clock.elapsedTime * 1.2) * 0.18;
     const idleX = Math.sin(state.clock.elapsedTime * 0.55) * 0.05;
-    const targetY = launched ? -17.8 : -9.8;
+    const targetY = launched ? 70 : 2.2;
     const targetZ = launched ? -10.8 : -4.2;
     const targetRotY = launched ? Math.PI * 0.7 : Math.PI;
     const targetRotZ = launched ? 0.16 : 0.05;
 
-    group.current.position.y = MathUtils.lerp(group.current.position.y, targetY + idleY, 0.05);
-    group.current.position.z = MathUtils.lerp(group.current.position.z, targetZ, 0.04);
-    group.current.rotation.y = MathUtils.lerp(group.current.rotation.y, targetRotY, 0.03);
-    group.current.rotation.x = MathUtils.lerp(group.current.rotation.x, idleX, 0.035);
-    group.current.rotation.z = MathUtils.lerp(group.current.rotation.z, targetRotZ, 0.03);
+    // Lerp with slower factors to make launch longer
+    group.current.position.y = MathUtils.lerp(group.current.position.y, targetY + idleY, 0.025);
+    group.current.position.z = MathUtils.lerp(group.current.position.z, targetZ, 0.02);
+    group.current.rotation.y = MathUtils.lerp(group.current.rotation.y, targetRotY, 0.015);
+    group.current.rotation.x = MathUtils.lerp(group.current.rotation.x, idleX, 0.0175);
+    group.current.rotation.z = MathUtils.lerp(group.current.rotation.z, targetRotZ, 0.015);
+
+    // Check if launch is complete (when launched is true and position is close to base target)
+    if (launched && onLaunchComplete) {
+      const position = group.current.position;
+      const distanceSq =
+        Math.pow(position.y - targetY, 2) +
+        Math.pow(position.z - targetZ, 2) +
+        Math.pow(group.current.rotation.y - targetRotY, 2);
+      // If distance is small enough, consider launch complete
+      if (distanceSq < 0.01) {
+        onLaunchComplete();
+      }
+    }
   });
 
   const leftBoot = [0.14, -0.16, 0.05];
