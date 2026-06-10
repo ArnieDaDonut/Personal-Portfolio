@@ -1,10 +1,20 @@
 'use client';
 
-import { Suspense, useMemo, useRef, useState } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Stars, useGLTF } from '@react-three/drei';
+import { Suspense, useMemo, useRef, useState, useEffect } from 'react';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { OrbitControls, Stars, useGLTF, Html } from '@react-three/drei';
 import { MathUtils } from 'three';
 import * as THREE from 'three';
+
+function CameraUpdater({ cameraPos, fov }) {
+  const { camera } = useThree();
+  useEffect(() => {
+    camera.position.set(...cameraPos);
+    camera.fov = fov;
+    camera.updateProjectionMatrix();
+  }, [cameraPos, fov, camera]);
+  return null;
+}
 
 function FireTrail({ position, active }) {
   const ref = useRef();
@@ -71,53 +81,80 @@ function StarField() {
   );
 }
 
-function PlanetModel({ modelPath, position, ringColor, scale = 1.0, onClick }) {
+function PlanetModel({ modelPath, position, ringColor, scale = 1.0, onClick, interactive = true, label }) {
   const gltf = useGLTF(modelPath);
   const ref = useRef();
-  const [hovered, setHovered] = useState(false); const hoverScale = useRef(1);
-  // Compute uniform scale based on model's bounding box dimensions
-  const uniformScale = useMemo(() => {
-    // Ensure the scene is cloned to avoid mutating original
+  const [hovered, setHovered] = useState(false);
+  const hoverScale = useRef(1);
+
+  const { uniformScale, hitBoxRadius } = useMemo(() => {
     const sceneClone = gltf.scene.clone();
     const box = new THREE.Box3().setFromObject(sceneClone);
     const size = new THREE.Vector3();
     box.getSize(size);
     const maxDim = Math.max(size.x, size.y, size.z);
-    // Desired visual size (adjust as needed)
+
     const baseTarget = 3.0;
     const targetSize = modelPath === '/saturn.glb' || modelPath === '/saturn.glb'
-      ? baseTarget * 3.0 // double Saturn size (original 1.5 * 2)
+      ? baseTarget * 3.0
       : modelPath === '/black_hole.glb'
-        ? baseTarget * 5.0 // double black hole size (original 2.5 * 2)
+        ? baseTarget * 5.0
         : modelPath === '/earth.glb'
           ? baseTarget * 2.5
           : baseTarget;
-    return (maxDim > 0 ? targetSize / maxDim : 1.0) * scale;
+
+    const uScale = (maxDim > 0 ? targetSize / maxDim : 1.0) * scale;
+    const radius = (maxDim > 0 ? maxDim / 2 : 1.0) * uScale * 1.2;
+    return { uniformScale: uScale, hitBoxRadius: radius };
   }, [gltf, modelPath, scale]);
 
   useFrame((_, delta) => {
     if (ref.current && modelPath !== '/black_hole.glb') ref.current.rotation.y += delta * 0.08;
-    // smooth hover scaling
+    const t = 1 - Math.pow(0.001, delta);
     const target = hovered ? 1.2 : 1;
-    hoverScale.current = MathUtils.lerp(hoverScale.current, target, 0.1);
+    hoverScale.current = MathUtils.lerp(hoverScale.current, target, t);
+    const currentScale = uniformScale * hoverScale.current;
+    if (ref.current) {
+      ref.current.scale.set(currentScale, currentScale, currentScale);
+    }
   });
 
   return (
-    <group
-      ref={ref}
-      position={position}
-      scale={uniformScale * hoverScale.current}
-      onPointerEnter={() => setHovered(true)}
-      onPointerOut={() => setHovered(false)}
-      onClick={onClick}
-    >
-      <primitive object={gltf.scene.clone()} />
-      {ringColor ? (
-        <mesh rotation={[Math.PI / 2, 0, 0]}>
-          <torusGeometry args={[1.25, 0.08, 20, 120]} />
-          <meshStandardMaterial color={ringColor} emissive={ringColor} emissiveIntensity={0.18} transparent opacity={0.55} />
+    <group position={position} onClick={onClick}>
+      {interactive && (
+        <mesh
+          visible={false}
+          onPointerOver={(e) => { e.stopPropagation(); setHovered(true); document.body.style.cursor = 'pointer'; }}
+          onPointerOut={(e) => { e.stopPropagation(); setHovered(false); document.body.style.cursor = 'auto'; }}
+        >
+          <sphereGeometry args={[hitBoxRadius, 16, 16]} />
+          <meshBasicMaterial />
         </mesh>
-      ) : null}
+      )}
+      <group ref={ref} scale={uniformScale}>
+        <primitive object={gltf.scene.clone()} />
+        {ringColor && (
+          <mesh rotation={[Math.PI / 2, 0, 0]}>
+            <torusGeometry args={[1.25, 0.08, 20, 120]} />
+            <meshStandardMaterial color={ringColor} emissive={ringColor} emissiveIntensity={0.18} transparent opacity={0.55} />
+          </mesh>
+        )}
+      </group>
+      {label && (
+        <Html position={[0, hitBoxRadius + 0.8, 0]} center zIndexRange={[100, 0]}>
+          <div
+            className="text-white text-sm whitespace-nowrap drop-shadow-[0_0_8px_rgba(255,255,255,0.8)] pointer-events-none select-none"
+            style={{
+              fontFamily: '"Press Start 2P", monospace',
+              opacity: hovered ? 1 : 0.6,
+              transition: 'opacity 0.2s, transform 0.2s',
+              transform: hovered ? 'scale(1.1)' : 'scale(1)'
+            }}
+          >
+            {label}
+          </div>
+        </Html>
+      )}
     </group>
   );
 }
@@ -125,12 +162,36 @@ function PlanetModel({ modelPath, position, ringColor, scale = 1.0, onClick }) {
 function Astronaut({ launched, sceneState, onLaunchComplete, onPeak, onLaunchStart }) {
   const group = useRef();
   const gltf = useGLTF('/astronaut.glb');
+  const earthGltf = useGLTF('/earth.glb');
   const prevYRef = useRef(0);
   const peakCalledRef = useRef(false);
   const startCalledRef = useRef(false);
 
   // Track precise launch time for the pre-launch shake and engine ignition animation
   const launchStartTime = useRef(null);
+
+  const { earthSurfaceY, footOffset } = useMemo(() => {
+    // 1. Earth radius calculation
+    const earthBox = new THREE.Box3().setFromObject(earthGltf.scene.clone());
+    const earthSize = new THREE.Vector3();
+    earthBox.getSize(earthSize);
+    const earthMaxDim = Math.max(earthSize.x, earthSize.y, earthSize.z);
+
+    const earthBaseTarget = 3.0;
+    const earthTargetSize = earthBaseTarget * 2.5;
+    const earthScale = (earthMaxDim > 0 ? earthTargetSize / earthMaxDim : 1.0) * 0.45;
+    const earthRadius = (earthSize.y / 2) * earthScale;
+    const earthCenterY = -2.8;
+
+    // 2. Astronaut foot offset
+    const astroBox = new THREE.Box3().setFromObject(gltf.scene.clone());
+    const astroOffset = -astroBox.min.y;
+
+    return {
+      earthSurfaceY: earthCenterY + earthRadius,
+      footOffset: astroOffset
+    };
+  }, [earthGltf, gltf]);
 
   useFrame((state) => {
     if (!group.current) return;
@@ -168,7 +229,7 @@ function Astronaut({ launched, sceneState, onLaunchComplete, onPeak, onLaunchSta
       const idleSwayY = Math.sin(state.clock.elapsedTime * 0.9) * 0.14;
       const idleLeanZ = Math.sin(state.clock.elapsedTime * 1.2) * 0.09;
 
-      let targetY = 0.2; // Align astronaut feet with Earth surface
+      let targetY = earthSurfaceY + footOffset * 1.3; // Align astronaut feet with Earth surface
       let shakeX = 0;
       let shakeZ = 0;
 
@@ -248,7 +309,7 @@ function Astronaut({ launched, sceneState, onLaunchComplete, onPeak, onLaunchSta
 
 
   return (
-    <group ref={group} position={initialPosition} rotation={[0, 0, 0]} scale={currentScale}>
+    <group ref={group} position={initialPosition} rotation={[0, 0, 0]} scale={currentScale} raycast={() => null}>
       <primitive object={gltf.scene} />
       <FireTrail position={leftBoot} active={launched && sceneState === 'earth'} />
       <FireTrail position={rightBoot} active={launched && sceneState === 'earth'} />
@@ -256,18 +317,18 @@ function Astronaut({ launched, sceneState, onLaunchComplete, onPeak, onLaunchSta
   );
 }
 
-export function HeroCanvas({ launched, sceneState, onLaunchComplete, onPeak, onLaunchStart, cameraPos = [0, -0.5, 20], fov = 38 }) {
+export function HeroCanvas({ launched, sceneState, onLaunchComplete, onPeak, onLaunchStart, onReturnToEarth, cameraPos = [0, -0.5, 20], fov = 38 }) {
   const starField = useMemo(() => <StarField />, []);
   const [selectedPlanet, setSelectedPlanet] = useState(null);
   const [fadeOpacity, setFadeOpacity] = useState(0);
   const planets = useMemo(() => {
     if (sceneState === 'space') {
       return [
-        { modelPath: '/saturn.glb', position: [7.0 * Math.cos(0), 0, 7.0 * Math.sin(0)], ringColor: '#e0b7ff', scale: 1.0 },
-        { modelPath: '/earth.glb', position: [7.0 * Math.cos(Math.PI * 0.4), 0, 7.0 * Math.sin(Math.PI * 0.4)], ringColor: null, scale: 0.45 },
-        { modelPath: '/black_hole.glb', position: [8.0 * Math.cos(Math.PI * 1.2), 0, 14.0 * Math.sin(Math.PI * 1.2)], ringColor: null, scale: 0.9 },
-        { modelPath: '/planet.glb', position: [7.0 * Math.cos(Math.PI * 0.8), 0, 7.0 * Math.sin(Math.PI * 0.8)], ringColor: null, scale: 1.5 },
-        { modelPath: '/purple_planet.glb', position: [7.0 * Math.cos(Math.PI * 1.6), 0, 7.0 * Math.sin(Math.PI * 1.6)], ringColor: null, scale: 1.2 },
+        { modelPath: '/saturn.glb', position: [10.0 * Math.cos(0), 1.5, 10.0 * Math.sin(0)], ringColor: '#e0b7ff', scale: 0.7, label: '' },
+        { modelPath: '/earth.glb', position: [7.0 * Math.cos(Math.PI * 0.4), -1.0, 7.0 * Math.sin(Math.PI * 0.4)], ringColor: null, scale: 0.45, label: 'Back to Main Menu', onClick: onReturnToEarth },
+        { modelPath: '/black_hole.glb', position: [8.0 * Math.cos(Math.PI * 1.2), 0, 14.0 * Math.sin(Math.PI * 1.2)], ringColor: null, scale: 0.9, label: '' },
+        { modelPath: '/planet.glb', position: [7.0 * Math.cos(Math.PI * 0.8), 0, 7.0 * Math.sin(Math.PI * 0.8)], ringColor: null, scale: 1.5, label: '' },
+        { modelPath: '/purple_planet.glb', position: [7.0 * Math.cos(Math.PI * 1.6), 0, 7.0 * Math.sin(Math.PI * 1.6)], ringColor: null, scale: 1.2, label: '' },
       ];
     } else {
       // Initial scene: a single distant Saturn
@@ -278,6 +339,7 @@ export function HeroCanvas({ launched, sceneState, onLaunchComplete, onPeak, onL
   return (
     <div className="h-screen w-full overflow-hidden bg-[#020617]">
       <Canvas camera={{ position: cameraPos, fov }}>
+        <CameraUpdater cameraPos={cameraPos} fov={fov} />
         <ambientLight intensity={0.4} />
         <directionalLight position={[5, 5, 2]} intensity={1.5} color="#9ec5ff" />
         <directionalLight position={[-4, -2, -3]} intensity={0.65} color="#c76cff" />
@@ -286,7 +348,7 @@ export function HeroCanvas({ launched, sceneState, onLaunchComplete, onPeak, onL
         {starField}
         <Suspense fallback={null}>
           {sceneState === 'earth' && (
-            <PlanetModel modelPath="/earth.glb" position={[0, -2.8, 0]} scale={0.45} ringColor={null} />
+            <PlanetModel modelPath="/earth.glb" position={[0, -2.8, 0]} scale={0.45} ringColor={null} interactive={false} />
           )}
           {planets.map((planet, index) => (
             <PlanetModel key={`${sceneState}-${index}`} {...planet} />
