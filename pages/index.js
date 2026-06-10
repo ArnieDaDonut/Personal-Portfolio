@@ -63,6 +63,46 @@ export default function Home() {
     timeoutRef.current = transitionTimeout;
   };
 
+  const [selectedPlanet, setSelectedPlanet] = useState(null);
+
+  const handlePlanetClick = (modelPath) => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    
+    setFadeTransition('1.0s ease');
+    setOverlayOpacity(1);
+
+    const transitionTimeout = setTimeout(() => {
+      setSceneState('presentation');
+      setSelectedPlanet(modelPath);
+      setCameraPos([0, 0, 20]); 
+      setFov(45);
+
+      setFadeTransition('1.5s ease');
+      setOverlayOpacity(0);
+    }, 1100);
+
+    timeoutRef.current = transitionTimeout;
+  };
+
+  const handleBackToSpace = () => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    
+    setFadeTransition('1.0s ease');
+    setOverlayOpacity(1);
+
+    const transitionTimeout = setTimeout(() => {
+      setSceneState('space');
+      setSelectedPlanet(null);
+      setCameraPos([0, 3, 22]); // Wider view for space
+      setFov(45);
+
+      setFadeTransition('1.5s ease');
+      setOverlayOpacity(0);
+    }, 1100);
+
+    timeoutRef.current = transitionTimeout;
+  };
+
   useEffect(() => {
     return () => {
       if (timeoutRef.current) {
@@ -90,9 +130,12 @@ export default function Home() {
       <HeroCanvas
         launched={launched}
         sceneState={sceneState}
+        selectedPlanet={selectedPlanet}
         onLaunchComplete={handleLaunchComplete}
         onLaunchStart={handleLaunchStart}
         onReturnToEarth={handleReturnToEarth}
+        onPlanetClick={handlePlanetClick}
+        onBackToSpace={handleBackToSpace}
         cameraPos={cameraPos}
         fov={fov}
       />

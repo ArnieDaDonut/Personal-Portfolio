@@ -2,7 +2,7 @@
 
 import { Suspense, useMemo, useRef, useState, useEffect } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { OrbitControls, Stars, useGLTF, Html } from '@react-three/drei';
+import { OrbitControls, Stars, useGLTF, Html, ScrollControls, Scroll, useScroll } from '@react-three/drei';
 import { MathUtils } from 'three';
 import * as THREE from 'three';
 
@@ -14,6 +14,151 @@ function CameraUpdater({ cameraPos, fov }) {
     camera.updateProjectionMatrix();
   }, [cameraPos, fov, camera]);
   return null;
+}
+
+function PresentationScene({ modelPath, onBack }) {
+  const scroll = useScroll();
+  const planetGltf = useGLTF(modelPath); // Kept in case we still want to show the original planet far below or in sky, but not used for floor now.
+  const astronautGltf = useGLTF('/astronaut.glb');
+  const volcanoGltf = useGLTF('/free__volcano_low_poly.glb');
+  const lavaGltf = useGLTF('/low_poly_lava.glb');
+  const astronautRef = useRef();
+  const landscapeRef = useRef();
+
+  const presentationLavaTiles = useMemo(() => {
+    const tiles = [];
+    const tileCount = 15; // 15x15 grid — covers the full floor area around the volcanoes so it reads as infinite
+    const spacing = 700;
+    for (let ix = -Math.floor(tileCount / 2); ix <= Math.floor(tileCount / 2); ix++) {
+      for (let iz = -Math.floor(tileCount / 2); iz <= Math.floor(tileCount / 2); iz++) {
+        tiles.push(
+          <group key={`plava-${ix},${iz}`} position={[ix * spacing, 0, iz * spacing]} scale={800}>
+            <primitive object={lavaGltf.scene.clone()} />
+          </group>
+        );
+      }
+    }
+    return <>{tiles}</>;
+  }, [lavaGltf]);
+
+  useFrame((state, delta) => {
+    if (!astronautRef.current || !landscapeRef.current) return;
+    const offset = scroll.offset; // 0 to 1
+
+    // Astronaut descends initially, and stops lower on the screen (Y=-6)
+    const astronautTargetY = 8 - Math.min(offset * 20, 14);
+    astronautRef.current.position.y = MathUtils.lerp(astronautRef.current.position.y, astronautTargetY, 0.1);
+
+    // Astronaut tumbling logic: tumbles while falling, but rights itself perfectly at offset === 1
+    if (offset < 0.9) {
+      astronautRef.current.rotation.x = MathUtils.lerp(astronautRef.current.rotation.x, offset * Math.PI * 4, 0.05);
+      astronautRef.current.rotation.y += delta * 0.2;
+      astronautRef.current.rotation.z = MathUtils.lerp(astronautRef.current.rotation.z, offset * Math.PI, 0.05);
+    } else {
+      astronautRef.current.rotation.x = MathUtils.lerp(astronautRef.current.rotation.x, 0, 0.1);
+      astronautRef.current.rotation.y = MathUtils.lerp(astronautRef.current.rotation.y, 0, 0.1);
+      astronautRef.current.rotation.z = MathUtils.lerp(astronautRef.current.rotation.z, 0, 0.1);
+    }
+
+    // Landscape rushes UPWARDS to meet the astronaut
+    // We adjust the final Y so that the lava floor aligns with the astronaut's boots at Y=-6
+    const landscapeTargetY = -120 + offset * 114; // Ends at -6
+    landscapeRef.current.position.y = MathUtils.lerp(landscapeRef.current.position.y, landscapeTargetY, 0.1);
+  });
+
+  return (
+    <>
+      <color attach="background" args={['#020617']} />
+      <ambientLight intensity={0.7} color="#ffffff" />
+      <directionalLight position={[10, 20, 10]} intensity={1.5} color="#ffffff" />
+      {/* Lava glow lights for fiery ambiance */}
+      <pointLight position={[0, -5, 0]} intensity={8} color="#ff4400" distance={800} decay={2} />
+      <pointLight position={[-400, -5, -300]} intensity={6} color="#ff6600" distance={600} decay={2} />
+      <pointLight position={[400, -5, -200]} intensity={6} color="#ff3300" distance={600} decay={2} />
+
+      <group ref={astronautRef} position={[0, 8, 2]}>
+        <primitive object={astronautGltf.scene.clone()} scale={1.5} />
+      </group>
+
+      {/* The entire moving landscape */}
+      <group ref={landscapeRef} position={[0, -120, 0]}>
+        {/* Large base lava tile to fill any gaps at the horizon */}
+        <primitive object={lavaGltf.scene.clone()} scale={5000} position={[0, 0, 0]} />
+        {/* Dense tiled lava floor grid */}
+        {presentationLavaTiles}
+
+        {/* Volcanoes sitting ON the lava surface */}
+        <group position={[-350, 0, -500]} scale={180} rotation={[0, Math.PI / 4, 0]}>
+          <primitive object={volcanoGltf.scene.clone()} />
+        </group>
+        <group position={[300, 0, -600]} scale={220} rotation={[0, -Math.PI / 6, 0]}>
+          <primitive object={volcanoGltf.scene.clone()} />
+        </group>
+        <group position={[0, 0, -800]} scale={300} rotation={[0, Math.PI, 0]}>
+          <primitive object={volcanoGltf.scene.clone()} />
+        </group>
+        <group position={[-600, 0, -350]} scale={150} rotation={[0, Math.PI / 2, 0]}>
+          <primitive object={volcanoGltf.scene.clone()} />
+        </group>
+        <group position={[550, 0, -450]} scale={170} rotation={[0, -Math.PI / 3, 0]}>
+          <primitive object={volcanoGltf.scene.clone()} />
+        </group>
+
+        {/* Lava patches placed the same way as the volcanoes, just at their own positions */}
+        <group position={[-350, 0, -500]} scale={220} rotation={[0, Math.PI / 4, 0]}>
+          <primitive object={lavaGltf.scene.clone()} />
+        </group>
+        <group position={[300, 0, -600]} scale={260} rotation={[0, -Math.PI / 6, 0]}>
+          <primitive object={lavaGltf.scene.clone()} />
+        </group>
+        <group position={[0, 0, -800]} scale={350} rotation={[0, Math.PI, 0]}>
+          <primitive object={lavaGltf.scene.clone()} />
+        </group>
+        <group position={[-600, 0, -350]} scale={190} rotation={[0, Math.PI / 2, 0]}>
+          <primitive object={lavaGltf.scene.clone()} />
+        </group>
+        <group position={[550, 0, -450]} scale={210} rotation={[0, -Math.PI / 3, 0]}>
+          <primitive object={lavaGltf.scene.clone()} />
+        </group>
+      </group>
+
+      <Scroll html>
+        <div style={{ position: 'absolute', top: '10vh', left: '10vw', width: '40vw' }}>
+          <h1 className="text-3xl md:text-5xl font-bold text-orange-500 mb-4 font-mono drop-shadow-[0_0_10px_rgba(249,115,22,0.8)]">The Upper Atmosphere</h1>
+          <p className="text-lg md:text-xl text-orange-100 bg-black/60 p-6 rounded-xl border border-orange-500/30 backdrop-blur-sm">
+            Welcome to the presentation! As we descend through the fiery atmosphere of this shattered world, we'll explore Chapter 1 of the English project. Scroll down to descend further.
+          </p>
+        </div>
+
+        <div style={{ position: 'absolute', top: '120vh', right: '10vw', width: '40vw' }}>
+          <h1 className="text-3xl md:text-5xl font-bold text-orange-500 mb-4 font-mono drop-shadow-[0_0_10px_rgba(249,115,22,0.8)]">The Middle Layers</h1>
+          <p className="text-lg md:text-xl text-orange-100 bg-black/60 p-6 rounded-xl border border-orange-500/30 backdrop-blur-sm">
+            The pressure increases. Here we discuss the major themes and motifs found in the literature, analyzing the core conflicts of the narrative.
+          </p>
+        </div>
+
+        <div style={{ position: 'absolute', top: '220vh', left: '10vw', width: '40vw' }}>
+          <h1 className="text-3xl md:text-5xl font-bold text-orange-500 mb-4 font-mono drop-shadow-[0_0_10px_rgba(249,115,22,0.8)]">Nearing the Surface</h1>
+          <p className="text-lg md:text-xl text-orange-100 bg-black/60 p-6 rounded-xl border border-orange-500/30 backdrop-blur-sm">
+            Character development and conflict resolution take center stage as we approach the final destination of our literary journey.
+          </p>
+        </div>
+
+        <div style={{ position: 'absolute', top: '320vh', right: '10vw', width: '40vw' }}>
+          <h1 className="text-3xl md:text-5xl font-bold text-orange-500 mb-4 font-mono drop-shadow-[0_0_10px_rgba(249,115,22,0.8)]">Touchdown</h1>
+          <p className="text-lg md:text-xl text-orange-100 bg-black/60 p-6 rounded-xl border border-orange-500/30 backdrop-blur-sm">
+            We have landed. This concludes the presentation.
+          </p>
+          <button
+            onClick={onBack}
+            className="mt-8 px-8 py-4 bg-orange-600 hover:bg-orange-500 text-white font-bold rounded-lg transition-all shadow-[0_0_15px_rgba(234,88,12,0.6)] font-mono uppercase tracking-wider"
+          >
+            Back to Space
+          </button>
+        </div>
+      </Scroll>
+    </>
+  );
 }
 
 function FireTrail({ position, active }) {
@@ -317,17 +462,40 @@ function Astronaut({ launched, sceneState, onLaunchComplete, onPeak, onLaunchSta
   );
 }
 
-export function HeroCanvas({ launched, sceneState, onLaunchComplete, onPeak, onLaunchStart, onReturnToEarth, cameraPos = [0, -0.5, 20], fov = 38 }) {
-  const starField = useMemo(() => <StarField />, []);
-  const [selectedPlanet, setSelectedPlanet] = useState(null);
+export function HeroCanvas({ launched, sceneState, selectedPlanet, onLaunchComplete, onPeak, onLaunchStart, onReturnToEarth, onPlanetClick, onBackToSpace, cameraPos = [0, -0.5, 20], fov = 38 }) {
+  const lavaGltf = useGLTF('/just_lava.glb');
+
+
+
+
   const [fadeOpacity, setFadeOpacity] = useState(0);
+  const [showPrompt, setShowPrompt] = useState(false);
+
+  // Hide prompt on spacebar press
+  useEffect(() => {
+    const handler = (e) => {
+      if (e.code === 'Space') {
+        setShowPrompt(false);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => {
+      window.removeEventListener('keydown', handler);
+    };
+  }, []);
+
+  // Show prompt after 5 seconds to allow models to load
+  useEffect(() => {
+    const timer = setTimeout(() => setShowPrompt(true), 5000);
+    return () => clearTimeout(timer);
+  }, []);
   const planets = useMemo(() => {
     if (sceneState === 'space') {
       return [
         { modelPath: '/saturn.glb', position: [10.0 * Math.cos(0), 1.5, 10.0 * Math.sin(0)], ringColor: '#e0b7ff', scale: 0.7, label: '' },
         { modelPath: '/earth.glb', position: [7.0 * Math.cos(Math.PI * 0.4), -1.0, 7.0 * Math.sin(Math.PI * 0.4)], ringColor: null, scale: 0.45, label: 'Back to Main Menu', onClick: onReturnToEarth },
         { modelPath: '/black_hole.glb', position: [8.0 * Math.cos(Math.PI * 1.2), 0, 14.0 * Math.sin(Math.PI * 1.2)], ringColor: null, scale: 0.9, label: '' },
-        { modelPath: '/planet.glb', position: [7.0 * Math.cos(Math.PI * 0.8), 0, 7.0 * Math.sin(Math.PI * 0.8)], ringColor: null, scale: 1.5, label: '' },
+        { modelPath: '/planet.glb', position: [7.0 * Math.cos(Math.PI * 0.8), 0, 7.0 * Math.sin(Math.PI * 0.8)], ringColor: null, scale: 1.5, label: 'English Presentation', onClick: () => onPlanetClick('/planet.glb') },
         { modelPath: '/purple_planet.glb', position: [7.0 * Math.cos(Math.PI * 1.6), 0, 7.0 * Math.sin(Math.PI * 1.6)], ringColor: null, scale: 1.2, label: '' },
       ];
     } else {
@@ -336,41 +504,85 @@ export function HeroCanvas({ launched, sceneState, onLaunchComplete, onPeak, onL
     }
   }, [sceneState]);
 
+  const lavaTiles = useMemo(() => {
+    const tiles = [];
+    const tileCount = 5;
+    const spacing = 800;
+    const floorY = -10;
+    for (let ix = -Math.floor(tileCount / 2); ix <= Math.floor(tileCount / 2); ix++) {
+      for (let iz = -Math.floor(tileCount / 2); iz <= Math.floor(tileCount / 2); iz++) {
+        tiles.push(
+          <group key={`${ix},${iz}`} position={[ix * spacing, floorY, iz * spacing]} scale={800}>
+            <primitive object={lavaGltf.scene.clone()} />
+          </group>
+        );
+      }
+    }
+    return <>{tiles}</>;
+  }, [lavaGltf]);
+
   return (
     <div className="h-screen w-full overflow-hidden bg-[#020617]">
       <Canvas camera={{ position: cameraPos, fov }}>
         <CameraUpdater cameraPos={cameraPos} fov={fov} />
         <ambientLight intensity={0.4} />
-        <directionalLight position={[5, 5, 2]} intensity={1.5} color="#9ec5ff" />
-        <directionalLight position={[-4, -2, -3]} intensity={0.65} color="#c76cff" />
-        <pointLight position={[0, 3, -1]} intensity={0.85} color="#ffffff" />
-        <Stars radius={260} depth={120} count={22000} factor={6} saturation={0} fade speed={0.76} />
-        {starField}
+        {sceneState !== 'presentation' && (
+          <>
+            <directionalLight position={[5, 5, 2]} intensity={1.5} color="#9ec5ff" />
+            <directionalLight position={[-4, -2, -3]} intensity={0.65} color="#c76cff" />
+            <pointLight position={[0, 3, -1]} intensity={0.85} color="#ffffff" />
+            <Stars radius={260} depth={120} count={22000} factor={6} saturation={0} fadeSpeed={0.76} />
+
+          </>
+        )}
         <Suspense fallback={null}>
           {sceneState === 'earth' && (
             <PlanetModel modelPath="/earth.glb" position={[0, -2.8, 0]} scale={0.45} ringColor={null} interactive={false} />
           )}
-          {planets.map((planet, index) => (
+          {sceneState === 'space' && planets.map((planet, index) => (
             <PlanetModel key={`${sceneState}-${index}`} {...planet} />
           ))}
-          <Astronaut
-            launched={launched}
-            sceneState={sceneState}
-            onLaunchComplete={onLaunchComplete}
-            onPeak={onPeak}
-            onLaunchStart={onLaunchStart}
-          />
+          {sceneState !== 'presentation' && (
+            <>
+              {/* Lava floor */}
+              <primitive object={lavaGltf.scene.clone()} scale={4000} position={[0, -10, 0]} />
+              {/* Tiled lava floor */}
+              {lavaTiles}
+              <Astronaut
+                launched={launched}
+                sceneState={sceneState}
+                onLaunchComplete={onLaunchComplete}
+                onPeak={onPeak}
+                onLaunchStart={onLaunchStart}
+              />
+            </>
+          )}
+
+
+          {sceneState === 'presentation' && selectedPlanet && (
+            <ScrollControls pages={4} damping={0.1}>
+              <PresentationScene modelPath={selectedPlanet} onBack={onBackToSpace} />
+            </ScrollControls>
+          )}
         </Suspense>
-        <OrbitControls
-          enableZoom={false}
-          enablePan={false}
-          minPolarAngle={sceneState === 'space' ? 0 : Math.PI / 6}
-          maxPolarAngle={sceneState === 'space' ? Math.PI : Math.PI - Math.PI / 6}
-          enableDamping
-          dampingFactor={0.15}
-          rotateSpeed={0.55}
-        />
+        {sceneState !== 'presentation' && (
+          <OrbitControls
+            enableZoom={false}
+            enablePan={false}
+            minPolarAngle={sceneState === 'space' ? 0 : Math.PI / 6}
+            maxPolarAngle={sceneState === 'space' ? Math.PI : Math.PI - Math.PI / 6}
+            enableDamping
+            dampingFactor={0.15}
+            rotateSpeed={0.55}
+          />
+        )}
       </Canvas>
+      {showPrompt && !launched && sceneState === 'space' && (
+
+        <div className="absolute inset-0 flex items-center justify-center bg-black/70 text-white text-2xl font-mono z-10">
+          Press spacebar to take off
+        </div>
+      )}
     </div>
   );
 }
