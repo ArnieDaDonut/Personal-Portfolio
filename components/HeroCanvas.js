@@ -71,9 +71,10 @@ function StarField() {
   );
 }
 
-function PlanetModel({ modelPath, position, ringColor, scale = 1.0 }) {
+function PlanetModel({ modelPath, position, ringColor, scale = 1.0, onClick }) {
   const gltf = useGLTF(modelPath);
   const ref = useRef();
+  const [hovered, setHovered] = useState(false); const hoverScale = useRef(1);
   // Compute uniform scale based on model's bounding box dimensions
   const uniformScale = useMemo(() => {
     // Ensure the scene is cloned to avoid mutating original
@@ -84,7 +85,7 @@ function PlanetModel({ modelPath, position, ringColor, scale = 1.0 }) {
     const maxDim = Math.max(size.x, size.y, size.z);
     // Desired visual size (adjust as needed)
     const baseTarget = 3.0;
-    const targetSize = modelPath === '/saturn (1).glb' || modelPath === '/saturn.glb'
+    const targetSize = modelPath === '/saturn.glb' || modelPath === '/saturn.glb'
       ? baseTarget * 3.0 // double Saturn size (original 1.5 * 2)
       : modelPath === '/black_hole.glb'
         ? baseTarget * 5.0 // double black hole size (original 2.5 * 2)
@@ -96,10 +97,20 @@ function PlanetModel({ modelPath, position, ringColor, scale = 1.0 }) {
 
   useFrame((_, delta) => {
     if (ref.current && modelPath !== '/black_hole.glb') ref.current.rotation.y += delta * 0.08;
+    // smooth hover scaling
+    const target = hovered ? 1.2 : 1;
+    hoverScale.current = MathUtils.lerp(hoverScale.current, target, 0.1);
   });
 
   return (
-    <group ref={ref} position={position} scale={uniformScale}>
+    <group
+      ref={ref}
+      position={position}
+      scale={uniformScale * hoverScale.current}
+      onPointerEnter={() => setHovered(true)}
+      onPointerOut={() => setHovered(false)}
+      onClick={onClick}
+    >
       <primitive object={gltf.scene.clone()} />
       {ringColor ? (
         <mesh rotation={[Math.PI / 2, 0, 0]}>
@@ -247,11 +258,12 @@ function Astronaut({ launched, sceneState, onLaunchComplete, onPeak, onLaunchSta
 
 export function HeroCanvas({ launched, sceneState, onLaunchComplete, onPeak, onLaunchStart, cameraPos = [0, -0.5, 20], fov = 38 }) {
   const starField = useMemo(() => <StarField />, []);
-
+  const [selectedPlanet, setSelectedPlanet] = useState(null);
+  const [fadeOpacity, setFadeOpacity] = useState(0);
   const planets = useMemo(() => {
     if (sceneState === 'space') {
       return [
-        { modelPath: '/saturn (1).glb', position: [7.0 * Math.cos(0), 0, 7.0 * Math.sin(0)], ringColor: '#e0b7ff', scale: 1.0 },
+        { modelPath: '/saturn.glb', position: [7.0 * Math.cos(0), 0, 7.0 * Math.sin(0)], ringColor: '#e0b7ff', scale: 1.0 },
         { modelPath: '/earth.glb', position: [7.0 * Math.cos(Math.PI * 0.4), 0, 7.0 * Math.sin(Math.PI * 0.4)], ringColor: null, scale: 0.45 },
         { modelPath: '/black_hole.glb', position: [8.0 * Math.cos(Math.PI * 1.2), 0, 14.0 * Math.sin(Math.PI * 1.2)], ringColor: null, scale: 0.9 },
         { modelPath: '/planet.glb', position: [7.0 * Math.cos(Math.PI * 0.8), 0, 7.0 * Math.sin(Math.PI * 0.8)], ringColor: null, scale: 1.5 },
