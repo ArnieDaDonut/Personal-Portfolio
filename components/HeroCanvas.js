@@ -2,7 +2,7 @@
 
 import { Suspense, useMemo, useRef, useState, useEffect } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { OrbitControls, Stars, useGLTF, Html, ScrollControls, Scroll, useScroll } from '@react-three/drei';
+import { OrbitControls, Stars, useGLTF, Html, ScrollControls, Scroll, useScroll, useTexture, Billboard } from '@react-three/drei';
 import { MathUtils } from 'three';
 import * as THREE from 'three';
 
@@ -18,7 +18,7 @@ function CameraUpdater({ cameraPos, fov }) {
 
 function PresentationScene({ modelPath, onBack }) {
   const scroll = useScroll();
-  const planetGltf = useGLTF(modelPath); // Kept in case we still want to show the original planet far below or in sky, but not used for floor now.
+
   const astronautGltf = useGLTF('/astronaut.glb');
   const volcanoGltf = useGLTF('/free__volcano_low_poly.glb');
   const lavaGltf = useGLTF('/low_poly_lava.glb');
@@ -226,10 +226,11 @@ function StarField() {
   );
 }
 
-function PlanetModel({ modelPath, position, ringColor, scale = 1.0, onClick, interactive = true, label }) {
+function PlanetModel({ modelPath, position, ringColor, scale = 1.0, onClick, interactive = true, label, forceHover = null }) {
   const gltf = useGLTF(modelPath);
   const ref = useRef();
-  const [hovered, setHovered] = useState(false);
+  const [internalHovered, setInternalHovered] = useState(false);
+  const hovered = forceHover !== null ? forceHover : internalHovered;
   const hoverScale = useRef(1);
 
   const { uniformScale, hitBoxRadius } = useMemo(() => {
@@ -240,13 +241,11 @@ function PlanetModel({ modelPath, position, ringColor, scale = 1.0, onClick, int
     const maxDim = Math.max(size.x, size.y, size.z);
 
     const baseTarget = 3.0;
-    const targetSize = modelPath === '/saturn.glb' || modelPath === '/saturn.glb'
-      ? baseTarget * 3.0
-      : modelPath === '/black_hole.glb'
-        ? baseTarget * 5.0
-        : modelPath === '/earth.glb'
-          ? baseTarget * 2.5
-          : baseTarget;
+    const targetSize = modelPath === '/constellation.glb'
+      ? baseTarget * 2.5
+      : modelPath === '/earth.glb'
+        ? baseTarget * 2.5
+        : baseTarget;
 
     const uScale = (maxDim > 0 ? targetSize / maxDim : 1.0) * scale;
     const radius = (maxDim > 0 ? maxDim / 2 : 1.0) * uScale * 1.2;
@@ -254,7 +253,7 @@ function PlanetModel({ modelPath, position, ringColor, scale = 1.0, onClick, int
   }, [gltf, modelPath, scale]);
 
   useFrame((_, delta) => {
-    if (ref.current && modelPath !== '/black_hole.glb') ref.current.rotation.y += delta * 0.08;
+    if (ref.current && modelPath !== '/constellation.glb') ref.current.rotation.y += delta * 0.08;
     const t = 1 - Math.pow(0.001, delta);
     const target = hovered ? 1.2 : 1;
     hoverScale.current = MathUtils.lerp(hoverScale.current, target, t);
@@ -269,8 +268,8 @@ function PlanetModel({ modelPath, position, ringColor, scale = 1.0, onClick, int
       {interactive && (
         <mesh
           visible={false}
-          onPointerOver={(e) => { e.stopPropagation(); setHovered(true); document.body.style.cursor = 'pointer'; }}
-          onPointerOut={(e) => { e.stopPropagation(); setHovered(false); document.body.style.cursor = 'auto'; }}
+          onPointerOver={(e) => { e.stopPropagation(); setInternalHovered(true); document.body.style.cursor = 'pointer'; }}
+          onPointerOut={(e) => { e.stopPropagation(); setInternalHovered(false); document.body.style.cursor = 'auto'; }}
         >
           <sphereGeometry args={[hitBoxRadius, 16, 16]} />
           <meshBasicMaterial />
@@ -288,12 +287,104 @@ function PlanetModel({ modelPath, position, ringColor, scale = 1.0, onClick, int
       {label && (
         <Html position={[0, hitBoxRadius + 0.8, 0]} center zIndexRange={[100, 0]}>
           <div
-            className="text-white text-sm whitespace-nowrap drop-shadow-[0_0_8px_rgba(255,255,255,0.8)] pointer-events-none select-none"
+            className="text-white text-sm whitespace-nowrap pointer-events-none select-none transition-all duration-200"
             style={{
               fontFamily: '"Press Start 2P", monospace',
-              opacity: hovered ? 1 : 0.6,
-              transition: 'opacity 0.2s, transform 0.2s',
-              transform: hovered ? 'scale(1.1)' : 'scale(1)'
+              opacity: hovered ? 1 : 0.8,
+              transform: hovered ? 'scale(1.1)' : 'scale(1)',
+              filter: hovered ? 'drop-shadow(0 0 12px rgba(255,165,0,1))' : 'drop-shadow(0 0 8px rgba(255,255,255,0.8))',
+              color: hovered ? '#ffcc00' : 'white',
+            }}
+          >
+            {label}
+          </div>
+        </Html>
+      )}
+    </group>
+  );
+}
+
+function VenusMarsGroup({ position, onClick, label }) {
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <group position={position} onClick={onClick}>
+      <mesh
+        visible={false}
+        onPointerOver={(e) => { e.stopPropagation(); setHovered(true); document.body.style.cursor = 'pointer'; }}
+        onPointerOut={(e) => { e.stopPropagation(); setHovered(false); document.body.style.cursor = 'auto'; }}
+      >
+        <boxGeometry args={[6, 6, 10]} />
+        <meshBasicMaterial />
+      </mesh>
+
+      <PlanetModel modelPath="/venus.glb" position={[0, 0, -2.5]} interactive={false} forceHover={hovered} />
+      <PlanetModel modelPath="/mars_the_red_planet_free.glb" position={[0, 0, 2.5]} interactive={false} forceHover={hovered} />
+
+      <Html position={[0, 3.5, 0]} center zIndexRange={[100, 0]}>
+        <div
+          className="text-white text-sm whitespace-nowrap pointer-events-none select-none transition-all duration-200"
+          style={{
+            fontFamily: '"Press Start 2P", monospace',
+            opacity: hovered ? 1 : 0.8,
+            transform: hovered ? 'scale(1.1)' : 'scale(1)',
+            filter: hovered ? 'drop-shadow(0 0 12px rgba(255,165,0,1))' : 'drop-shadow(0 0 8px rgba(255,255,255,0.8))',
+            color: hovered ? '#ffcc00' : 'white',
+          }}
+        >
+          {label}
+        </div>
+      </Html>
+    </group>
+  );
+}
+
+function ImagePlanet({ modelPath, position, scale = 1.0, onClick, interactive = true, label }) {
+  const texture = useTexture(modelPath);
+  const ref = useRef();
+  const [hovered, setHovered] = useState(false);
+  const hoverScale = useRef(1);
+
+  const hitBoxRadius = 3.0 * scale;
+
+  useFrame((_, delta) => {
+    const t = 1 - Math.pow(0.001, delta);
+    const target = hovered ? 1.2 : 1;
+    hoverScale.current = MathUtils.lerp(hoverScale.current, target, t);
+    const currentScale = scale * hoverScale.current;
+    if (ref.current) {
+      ref.current.scale.set(currentScale, currentScale, currentScale);
+    }
+  });
+
+  return (
+    <group position={position} onClick={onClick}>
+      {interactive && (
+        <mesh
+          visible={false}
+          onPointerOver={(e) => { e.stopPropagation(); setHovered(true); document.body.style.cursor = 'pointer'; }}
+          onPointerOut={(e) => { e.stopPropagation(); setHovered(false); document.body.style.cursor = 'auto'; }}
+        >
+          <sphereGeometry args={[hitBoxRadius, 16, 16]} />
+          <meshBasicMaterial />
+        </mesh>
+      )}
+      <Billboard ref={ref} follow={true} lockX={false} lockY={false} lockZ={false}>
+        <mesh>
+          <planeGeometry args={[10, 10]} />
+          <meshBasicMaterial map={texture} transparent side={THREE.DoubleSide} />
+        </mesh>
+      </Billboard>
+      {label && (
+        <Html position={[0, hitBoxRadius + 0.8, 0]} center zIndexRange={[100, 0]}>
+          <div
+            className="text-white text-sm whitespace-nowrap pointer-events-none select-none transition-all duration-200"
+            style={{
+              fontFamily: '"Press Start 2P", monospace',
+              opacity: hovered ? 1 : 0.8,
+              transform: hovered ? 'scale(1.1)' : 'scale(1)',
+              filter: hovered ? 'drop-shadow(0 0 12px rgba(255,165,0,1))' : 'drop-shadow(0 0 8px rgba(255,255,255,0.8))',
+              color: hovered ? '#ffcc00' : 'white',
             }}
           >
             {label}
@@ -492,17 +583,15 @@ export function HeroCanvas({ launched, sceneState, selectedPlanet, onLaunchCompl
   const planets = useMemo(() => {
     if (sceneState === 'space') {
       return [
-        { modelPath: '/saturn.glb', position: [10.0 * Math.cos(0), 1.5, 10.0 * Math.sin(0)], ringColor: '#e0b7ff', scale: 0.7, label: '' },
+        { isGroup: true, id: 'venus_mars', position: [8.0, 0, 0], label: 'Venus & Mars', onClick: () => onPlanetClick('/venus_and_mars') },
         { modelPath: '/earth.glb', position: [7.0 * Math.cos(Math.PI * 0.4), -1.0, 7.0 * Math.sin(Math.PI * 0.4)], ringColor: null, scale: 0.45, label: 'Back to Main Menu', onClick: onReturnToEarth },
-        { modelPath: '/black_hole.glb', position: [8.0 * Math.cos(Math.PI * 1.2), 0, 14.0 * Math.sin(Math.PI * 1.2)], ringColor: null, scale: 0.9, label: '' },
-        { modelPath: '/planet.glb', position: [7.0 * Math.cos(Math.PI * 0.8), 0, 7.0 * Math.sin(Math.PI * 0.8)], ringColor: null, scale: 1.5, label: 'English Presentation', onClick: () => onPlanetClick('/planet.glb') },
-        { modelPath: '/purple_planet.glb', position: [7.0 * Math.cos(Math.PI * 1.6), 0, 7.0 * Math.sin(Math.PI * 1.6)], ringColor: null, scale: 1.2, label: '' },
+        { modelPath: '/download (2).png', position: [10.0 * Math.cos(Math.PI * (4 / 3)), 1.0, 10.0 * Math.sin(Math.PI * (4 / 3))], ringColor: null, scale: 0.8, label: 'Constellations', onClick: () => onPlanetClick('/download (2).png') },
       ];
     } else {
-      // Initial scene: a single distant Saturn
+      // Initial scene: empty (celestial bodies appear after launch into space)
       return [];
     }
-  }, [sceneState]);
+  }, [sceneState, onPlanetClick, onReturnToEarth]);
 
   const lavaTiles = useMemo(() => {
     const tiles = [];
@@ -539,9 +628,14 @@ export function HeroCanvas({ launched, sceneState, selectedPlanet, onLaunchCompl
           {sceneState === 'earth' && (
             <PlanetModel modelPath="/earth.glb" position={[0, -2.8, 0]} scale={0.45} ringColor={null} interactive={false} />
           )}
-          {sceneState === 'space' && planets.map((planet, index) => (
-            <PlanetModel key={`${sceneState}-${index}`} {...planet} />
-          ))}
+          {sceneState === 'space' && planets.map((planet, index) => {
+            if (planet.isGroup && planet.id === 'venus_mars') {
+              return <VenusMarsGroup key={`${sceneState}-${index}`} {...planet} />;
+            }
+            return planet.modelPath.endsWith('.png') || planet.modelPath.endsWith('.jpg') ?
+              <ImagePlanet key={`${sceneState}-${index}`} {...planet} /> :
+              <PlanetModel key={`${sceneState}-${index}`} {...planet} />;
+          })}
           {sceneState !== 'presentation' && (
             <>
               {/* Lava floor */}
