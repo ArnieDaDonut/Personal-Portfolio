@@ -318,7 +318,7 @@ function VenusMarsGroup({ position, onClick, label }) {
         <meshBasicMaterial />
       </mesh>
 
-      <PlanetModel modelPath="/venus.glb" position={[0, 0, -2.5]} interactive={false} forceHover={hovered} />
+      <PlanetModel modelPath="/venus_fixed.glb" position={[0, 0, -2.5]} interactive={false} forceHover={hovered} />
       <PlanetModel modelPath="/mars_the_red_planet_free.glb" position={[0, 0, 2.5]} interactive={false} forceHover={hovered} />
 
       <Html position={[0, 3.5, 0]} center zIndexRange={[100, 0]}>
@@ -335,6 +335,119 @@ function VenusMarsGroup({ position, onClick, label }) {
           {label}
         </div>
       </Html>
+    </group>
+  );
+}
+
+function PleiadesCluster({ position, onClick, label }) {
+  const [hovered, setHovered] = useState(false);
+  const hoverScale = useRef(1);
+  const ref = useRef();
+
+  const particlesPosition = useMemo(() => {
+    const count = 300;
+    const positions = new Float32Array(count * 3);
+    for (let i = 0; i < count; i++) {
+      // background faint stars
+      const r = Math.pow(Math.random(), 2) * 4.0;
+      const theta = Math.random() * 2 * Math.PI;
+      const phi = Math.acos((Math.random() * 2) - 1);
+      positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+      positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+      positions[i * 3 + 2] = r * Math.cos(phi);
+    }
+    return positions;
+  }, []);
+
+  const mainStars = useMemo(() => [
+    { pos: [-1.4, 0.1, 0.1], size: 1.0 },   // Leftmost
+    { pos: [-0.6, 0.8, 0.3], size: 0.9 },   // Top center
+    { pos: [-0.5, -0.6, -0.2], size: 1.2 }, // Bottom center
+    { pos: [0.6, 1.0, 0.1], size: 0.8 },    // Top right
+    { pos: [1.2, -0.2, 0.2], size: 0.85 },  // Bottom right
+    { pos: [1.6, 0.6, -0.1], size: 0.7 },   // Far right top
+    { pos: [0.2, 0.1, 0.0], size: 0.6 },    // Center faint
+  ], []);
+
+  useFrame((_, delta) => {
+    if (ref.current) ref.current.rotation.y += delta * 0.02; // Slower rotation
+    const t = 1 - Math.pow(0.001, delta);
+    const target = hovered ? 1.2 : 1;
+    hoverScale.current = MathUtils.lerp(hoverScale.current, target, t);
+    if (ref.current) {
+      ref.current.scale.set(hoverScale.current, hoverScale.current, hoverScale.current);
+    }
+  });
+
+  return (
+    <group position={position} onClick={onClick}>
+      <mesh
+        visible={false}
+        onPointerOver={(e) => { e.stopPropagation(); setHovered(true); document.body.style.cursor = 'pointer'; }}
+        onPointerOut={(e) => { e.stopPropagation(); setHovered(false); document.body.style.cursor = 'auto'; }}
+      >
+        <sphereGeometry args={[3.5, 16, 16]} />
+        <meshBasicMaterial />
+      </mesh>
+
+      <group ref={ref}>
+        {/* Faint background stars */}
+        <points>
+          <bufferGeometry>
+            <bufferAttribute attach="attributes-position" array={particlesPosition} itemSize={3} count={particlesPosition.length / 3} />
+          </bufferGeometry>
+          <pointsMaterial size={0.08} color="#ffffff" transparent opacity={0.6} blending={THREE.AdditiveBlending} depthWrite={false} sizeAttenuation={true} />
+        </points>
+
+        {/* The Seven Sisters (Main Stars) */}
+        {mainStars.map((star, i) => (
+          <group key={`star-${i}`} position={star.pos} scale={star.size}>
+            {/* Bright Core */}
+            <mesh>
+              <sphereGeometry args={[0.06, 16, 16]} />
+              <meshBasicMaterial color="#ffffff" />
+            </mesh>
+            {/* Inner Glow */}
+            <mesh>
+              <sphereGeometry args={[0.3, 16, 16]} />
+              <meshBasicMaterial color="#aaddff" transparent opacity={0.5} blending={THREE.AdditiveBlending} depthWrite={false} />
+            </mesh>
+            {/* Outer Blue Nebula Halo */}
+            <mesh>
+              <sphereGeometry args={[1.2, 16, 16]} />
+              <meshBasicMaterial color="#0055ff" transparent opacity={0.12} blending={THREE.AdditiveBlending} depthWrite={false} />
+            </mesh>
+            {/* Cross Lens Flares */}
+            <Billboard follow={true} lockX={false} lockY={false} lockZ={false}>
+              <mesh>
+                <planeGeometry args={[0.04, 2.5]} />
+                <meshBasicMaterial color="#88ccff" transparent opacity={0.4} blending={THREE.AdditiveBlending} depthWrite={false} side={THREE.DoubleSide} />
+              </mesh>
+              <mesh>
+                <planeGeometry args={[2.5, 0.04]} />
+                <meshBasicMaterial color="#88ccff" transparent opacity={0.4} blending={THREE.AdditiveBlending} depthWrite={false} side={THREE.DoubleSide} />
+              </mesh>
+            </Billboard>
+          </group>
+        ))}
+      </group>
+
+      {label && (
+        <Html position={[0, 4.5, 0]} center zIndexRange={[100, 0]}>
+          <div
+            className="text-white text-sm whitespace-nowrap pointer-events-none select-none transition-all duration-200"
+            style={{
+              fontFamily: '"Press Start 2P", monospace',
+              opacity: hovered ? 1 : 0.8,
+              transform: hovered ? 'scale(1.1)' : 'scale(1)',
+              filter: hovered ? 'drop-shadow(0 0 12px rgba(255,165,0,1))' : 'drop-shadow(0 0 8px rgba(255,255,255,0.8))',
+              color: hovered ? '#ffcc00' : 'white',
+            }}
+          >
+            {label}
+          </div>
+        </Html>
+      )}
     </group>
   );
 }
@@ -586,6 +699,7 @@ export function HeroCanvas({ launched, sceneState, selectedPlanet, onLaunchCompl
         { isGroup: true, id: 'venus_mars', position: [8.0, 0, 0], label: 'Venus & Mars', onClick: () => onPlanetClick('/venus_and_mars') },
         { modelPath: '/earth.glb', position: [7.0 * Math.cos(Math.PI * 0.4), -1.0, 7.0 * Math.sin(Math.PI * 0.4)], ringColor: null, scale: 0.45, label: 'Back to Main Menu', onClick: onReturnToEarth },
         { modelPath: '/download (2).png', position: [10.0 * Math.cos(Math.PI * (4 / 3)), 1.0, 10.0 * Math.sin(Math.PI * (4 / 3))], ringColor: null, scale: 0.8, label: 'Constellations', onClick: () => onPlanetClick('/download (2).png') },
+        { isGroup: true, id: 'pleiades', position: [9.0 * Math.cos(Math.PI * 1.7), 2.0, 9.0 * Math.sin(Math.PI * 1.7)], label: 'Pleiades', onClick: () => onPlanetClick('/pleiades') },
       ];
     } else {
       // Initial scene: empty (celestial bodies appear after launch into space)
@@ -631,6 +745,9 @@ export function HeroCanvas({ launched, sceneState, selectedPlanet, onLaunchCompl
           {sceneState === 'space' && planets.map((planet, index) => {
             if (planet.isGroup && planet.id === 'venus_mars') {
               return <VenusMarsGroup key={`${sceneState}-${index}`} {...planet} />;
+            }
+            if (planet.isGroup && planet.id === 'pleiades') {
+              return <PleiadesCluster key={`${sceneState}-${index}`} {...planet} />;
             }
             return planet.modelPath.endsWith('.png') || planet.modelPath.endsWith('.jpg') ?
               <ImagePlanet key={`${sceneState}-${index}`} {...planet} /> :
