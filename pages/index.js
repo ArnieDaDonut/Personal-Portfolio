@@ -9,7 +9,14 @@ const HeroCanvas = dynamic(() => import('../components/HeroCanvas').then((mod) =
 export default function Home() {
   const [launched, setLaunched] = useState(false);
   const [sceneState, setSceneState] = useState('earth'); // 'earth' or 'space'
+  const [isModelsLoaded, setIsModelsLoaded] = useState(false);
   const [overlayOpacity, setOverlayOpacity] = useState(0);
+
+  // Enable launch mechanics 5 seconds after load
+  useEffect(() => {
+    const timer = setTimeout(() => setIsModelsLoaded(true), 5000);
+    return () => clearTimeout(timer);
+  }, []);
   const [cameraPos, setCameraPos] = useState([0, -0.5, 20]); // Zoomed out starting position to view both astronaut and Earth
   const [fov, setFov] = useState(38);
   const timeoutRef = useRef(null);
@@ -113,14 +120,14 @@ export default function Home() {
 
   useEffect(() => {
     const handleSpace = (event) => {
-      if (event.code === 'Space' && !launched) {
+      if (event.code === 'Space' && !launched && isModelsLoaded) {
         setLaunched(true);
       }
     };
 
     window.addEventListener('keydown', handleSpace);
     return () => window.removeEventListener('keydown', handleSpace);
-  }, [launched]);
+  }, [launched, isModelsLoaded]);
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-space text-slate-100">
@@ -140,16 +147,17 @@ export default function Home() {
         fov={fov}
       />
       <div className="absolute inset-0 bg-black pointer-events-none z-50" style={{ opacity: overlayOpacity, transition: fadeTransition }}></div>
-      {!launched && sceneState === 'earth' && (
-        <div className="absolute bottom-16 left-1/2 -translate-x-1/2 pointer-events-none z-40 animate-pulse text-center w-full">
-          <p 
-            className="text-[#9ec5ff] text-sm md:text-base lg:text-lg drop-shadow-[0_0_8px_rgba(158,197,255,0.8)]"
-            style={{ fontFamily: '"Press Start 2P", monospace' }}
-          >
-            Press Spacebar to Lift Off
-          </p>
-        </div>
-      )}
+      <div 
+        className="absolute bottom-16 left-1/2 -translate-x-1/2 pointer-events-none z-40 text-center w-full transition-opacity duration-1000 ease-in-out"
+        style={{ opacity: !launched && sceneState === 'earth' && isModelsLoaded ? 1 : 0 }}
+      >
+        <p 
+          className="text-[#9ec5ff] text-sm md:text-base lg:text-lg drop-shadow-[0_0_8px_rgba(158,197,255,0.8)] animate-pulse"
+          style={{ fontFamily: '"Press Start 2P", monospace' }}
+        >
+          Press Spacebar to Lift Off
+        </p>
+      </div>
     </main>
   );
 }
