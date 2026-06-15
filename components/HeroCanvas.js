@@ -48,10 +48,74 @@ function RealisticStar({ pos, brightness, color = '#ffffff' }) {
   );
 }
 
+useGLTF.preload('/planet.glb');
+
+function SpinningNavModel() {
+  const { scene } = useGLTF('/planet.glb');
+  const ref = useRef();
+  
+  useFrame((_, delta) => {
+    if (ref.current) {
+      ref.current.rotation.y += delta * 0.8;
+      ref.current.rotation.x += delta * 0.2;
+    }
+  });
+
+  return (
+    <group ref={ref}>
+      <primitive object={scene.clone()} scale={1.8} />
+    </group>
+  );
+}
+
+function PersistentNav({ showModel, onNavigate }) {
+  return (
+    <div className="fixed top-4 right-4 z-50 flex items-center justify-center">
+      {showModel ? (
+        <div 
+          onClick={onNavigate}
+          className="w-16 h-16 md:w-20 md:h-20 cursor-pointer hover:scale-110 transition-transform"
+          title="Back to Space"
+        >
+          <Canvas camera={{ position: [0, 0, 5], fov: 40 }} transparent>
+            <ambientLight intensity={1.5} />
+            <directionalLight position={[2, 2, 2]} intensity={1} />
+            <Suspense fallback={null}>
+              <SpinningNavModel />
+            </Suspense>
+          </Canvas>
+        </div>
+      ) : (
+        <button
+          onClick={onNavigate}
+          style={{
+            padding: '1rem 2rem',
+            background: 'linear-gradient(135deg, #1a0a2e, #0f2040)',
+            color: '#aaffdd',
+            fontFamily: '"Press Start 2P", monospace',
+            fontSize: '0.7rem',
+            border: '1px solid #33ffaa55',
+            borderRadius: '12px',
+            cursor: 'pointer',
+            boxShadow: '0 0 20px rgba(51,255,170,0.3), inset 0 0 20px rgba(51,255,170,0.05)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.1em',
+          }}
+          className="hover:scale-105 transition-transform"
+        >
+          ← Back to Space
+        </button>
+      )}
+    </div>
+  );
+}
+
 function ConstellationScene({ onBack }) {
   const scroll = useScroll();
   const astronautGltf = useGLTF('/astronaut.glb');
   const astronautRef = useRef();
+  const [currentPage, setCurrentPage] = useState(0);
+  const { viewport } = useThree();
 
   const constellations = useMemo(() => [
     {
@@ -158,6 +222,11 @@ function ConstellationScene({ onBack }) {
   ], []);
 
   useFrame((state) => {
+    const page = Math.round(scroll.offset * 6);
+    if (currentPage !== page) {
+      setCurrentPage(page);
+    }
+
     if (!astronautRef.current) return;
 
     // Smooth time-based values for procedural animation
@@ -192,15 +261,18 @@ function ConstellationScene({ onBack }) {
     );
   });
 
+  const isExcluded = currentPage === 0 || currentPage === 6;
+  const showModel = !isExcluded;
+
   return (
     <>
-      <color attach="background" args={['#020a18']} />
-      <ambientLight intensity={0.3} />
+      <color attach="background" args={['#0f1a30']} />
+      <ambientLight intensity={0.8} />
       <Stars radius={220} depth={90} count={18000} factor={6} saturation={0.1} fadeSpeed={0.4} />
 
       {/* Per-constellation coloured accent lights, positioned along the scroll axis */}
       {constellations.map((c, i) => (
-        <pointLight key={c.name} position={[i * 16, 1, 4]} intensity={3} color={c.color} distance={14} decay={2} />
+        <pointLight key={c.name} position={[i * viewport.width, 1, 4]} intensity={3} color={c.color} distance={14} decay={2} />
       ))}
 
       {/* Astronaut — fixed in world space, horizontally swimming above constellations */}
@@ -211,7 +283,7 @@ function ConstellationScene({ onBack }) {
       {/* 3-D scrolling constellation groups */}
       <Scroll>
         {constellations.map((c, i) => (
-          <group key={c.name} position={[i * 16, 0, 0]}>
+          <group key={c.name} position={[i * viewport.width, 0, 0]}>
             {/* Individual twinkling stars */}
             {c.stars.map((star, j) => (
               <RealisticStar key={j} pos={star.pos} brightness={star.b} color={c.color} />
@@ -233,6 +305,7 @@ function ConstellationScene({ onBack }) {
 
       {/* HTML text panels */}
       <Scroll html>
+        <PersistentNav showModel={showModel} onNavigate={onBack} />
         {constellations.map((c, i) => (
           <div
             key={c.name}
@@ -277,29 +350,6 @@ function ConstellationScene({ onBack }) {
             </p>
           </div>
         ))}
-
-        {/* Back button — after the last constellation */}
-        <div style={{ position: 'absolute', top: '86vh', left: `${5 * 100 + 22}vw`, width: '44vw' }}>
-          <button
-            onClick={onBack}
-            style={{
-              marginTop: '1rem',
-              padding: '1rem 2rem',
-              background: 'linear-gradient(135deg, #1a0a2e, #0f2040)',
-              color: '#aaffdd',
-              fontFamily: '"Press Start 2P", monospace',
-              fontSize: '0.7rem',
-              border: '1px solid #33ffaa55',
-              borderRadius: '12px',
-              cursor: 'pointer',
-              boxShadow: '0 0 20px rgba(51,255,170,0.3), inset 0 0 20px rgba(51,255,170,0.05)',
-              textTransform: 'uppercase',
-              letterSpacing: '0.1em',
-            }}
-          >
-            ← Back to Space
-          </button>
-        </div>
       </Scroll>
     </>
   );
@@ -424,8 +474,8 @@ function PleiadesScene({ onBack }) {
 
   return (
     <>
-      <color attach="background" args={['#010818']} />
-      <ambientLight intensity={0.3} />
+      <color attach="background" args={['#0e162b']} />
+      <ambientLight intensity={0.8} />
       {/* Blue fill lights to illuminate the nebula */}
       <pointLight position={[0, 0, 6]} intensity={2.0} color="#4488ff" distance={20} decay={2} />
       <pointLight position={[-1, 1, 4]} intensity={1.2} color="#2255cc" distance={15} decay={2} />
@@ -514,34 +564,27 @@ function PleiadesScene({ onBack }) {
 }
 
 // Loads a GLTF, centers it, and scales it to a target diameter — always reliable
-function CenteredGLTFPlanet({ path, diameter, outerRef }) {
+function CenteredGLTFPlanet({ path, diameter }) {
   const { scene } = useGLTF(path);
-  const probeRef = useRef();
 
-  const cloned = useMemo(() => {
+  const { cloned, modelScale } = useMemo(() => {
     const s = scene.clone();
     s.position.set(0, 0, 0);
     s.rotation.set(0, 0, 0);
     s.scale.set(1, 1, 1);
-    return s;
-  }, [scene]);
 
-  // useEffect runs after the first render when world matrices ARE computed
-  useEffect(() => {
-    if (!probeRef.current || !outerRef?.current) return;
-    const box = new THREE.Box3().setFromObject(probeRef.current);
-    if (box.isEmpty()) return;
+    const box = new THREE.Box3().setFromObject(s);
     const center = box.getCenter(new THREE.Vector3());
     const size = box.getSize(new THREE.Vector3());
     const maxDim = Math.max(size.x, size.y, size.z);
-    // Shift the cloned scene so its geometric center sits at the group origin
-    cloned.position.copy(center).negate();
-    // Scale the outer group to the desired screen diameter
-    if (maxDim > 0) outerRef.current.scale.setScalar(diameter / maxDim);
-  }, [cloned, diameter, outerRef]);
+
+    s.position.copy(center).negate();
+
+    return { cloned: s, modelScale: maxDim > 0 ? diameter / maxDim : 1 };
+  }, [scene, diameter]);
 
   return (
-    <group ref={probeRef}>
+    <group scale={modelScale}>
       <primitive object={cloned} />
     </group>
   );
@@ -609,9 +652,9 @@ function VenusMarsScene({ onBack }) {
 
   return (
     <>
-      <color attach="background" args={['#1a0505']} />
-      <fog attach="fog" args={['#1a0505', 50, 150]} />
-      <ambientLight intensity={0.5} />
+      <color attach="background" args={['#2e1010']} />
+      <fog attach="fog" args={['#2e1010', 50, 150]} />
+      <ambientLight intensity={1.0} />
       <Stars radius={200} depth={80} count={10000} factor={5} saturation={0} fadeSpeed={0.4} />
 
       <group ref={sceneRef}>
@@ -631,7 +674,7 @@ function VenusMarsScene({ onBack }) {
 
         {/* Venus on the left — GLTF model, auto-centered on first render */}
         <group ref={venusRef} position={[-4, -1, 0]}>
-          <CenteredGLTFPlanet path="/venus_fixed.glb" diameter={4.4} outerRef={venusRef} />
+          <CenteredGLTFPlanet path="/venus_fixed.glb" diameter={4.4} />
           {/* Atmospheric glow ring */}
           <mesh>
             <sphereGeometry args={[2.5, 32, 32]} />
@@ -641,7 +684,7 @@ function VenusMarsScene({ onBack }) {
 
         {/* Mars on the right — GLTF model, auto-centered on first render */}
         <group ref={marsRef} position={[4, -1, 0]}>
-          <CenteredGLTFPlanet path="/mars_the_red_planet_free.glb" diameter={3.8} outerRef={marsRef} />
+          <CenteredGLTFPlanet path="/mars_the_red_planet_free.glb" diameter={3.8} />
           {/* Thin dust atmosphere */}
           <mesh>
             <sphereGeometry args={[2.2, 32, 32]} />
@@ -1365,9 +1408,9 @@ function DreamcatcherScene({ onBack }) {
 
   return (
     <>
-      <color attach="background" args={['#0a0510']} />
-      <fog attach="fog" args={['#0a0510', 50, 150]} />
-      <ambientLight intensity={0.5} />
+      <color attach="background" args={['#1e102e']} />
+      <fog attach="fog" args={['#1e102e', 50, 150]} />
+      <ambientLight intensity={1.0} />
       <Stars radius={200} depth={80} count={10000} factor={5} saturation={0} fadeSpeed={0.4} />
 
       <group ref={ref} position={[0, 0, 0]} scale={modelScale}>
@@ -1465,10 +1508,10 @@ export function HeroCanvas({ launched, sceneState, selectedPlanet, onLaunchCompl
   }, [lavaGltf]);
 
   return (
-    <div className="h-screen w-full overflow-hidden bg-[#020617]">
+    <div className="h-screen w-full overflow-hidden bg-[#0f172a]">
       <Canvas camera={{ position: cameraPos, fov }}>
         <CameraUpdater cameraPos={cameraPos} fov={fov} />
-        <ambientLight intensity={0.6} />
+        <ambientLight intensity={1.2} />
         {sceneState !== 'presentation' && (
           <>
             <directionalLight position={[5, 5, 2]} intensity={1.5} color="#9ec5ff" />
