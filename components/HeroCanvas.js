@@ -53,7 +53,7 @@ useGLTF.preload('/planet.glb');
 function SpinningNavModel() {
   const { scene } = useGLTF('/planet.glb');
   const ref = useRef();
-  
+
   useFrame((_, delta) => {
     if (ref.current) {
       ref.current.rotation.y += delta * 0.8;
@@ -72,7 +72,7 @@ function PersistentNav({ showModel, onNavigate }) {
   return (
     <div className="fixed top-4 right-4 z-50 flex items-center justify-center">
       {showModel ? (
-        <div 
+        <div
           onClick={onNavigate}
           className="w-16 h-16 md:w-20 md:h-20 cursor-pointer hover:scale-110 transition-transform"
           title="Back to Space"
@@ -702,78 +702,87 @@ function VenusMarsScene({ onBack }) {
       <Scroll html>
         {/* Title */}
         <div style={{ position: 'absolute', top: '5vh', left: 0, width: '100vw', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <div style={{ width: '80vw', textAlign: 'center' }}>
-            <h1 className="text-3xl md:text-5xl font-bold text-white mb-2 font-mono" style={{ filter: 'drop-shadow(0 0 14px rgba(255,255,255,0.5))' }}>
+          <div style={{ width: '95vw', textAlign: 'center' }}>
+            <h1 className="text-5xl md:text-7xl font-bold text-white mb-2 font-mono" style={{ filter: 'drop-shadow(0 0 14px rgba(255,255,255,0.5))' }}>
               Venus &amp; Mars
             </h1>
-            <p className="text-lg md:text-xl text-white/60 font-mono italic">
-              A Tale of Two Worlds
+            <p className="text-2xl md:text-4xl text-white/60 font-mono italic mt-4">
+              Different Worlds
             </p>
           </div>
         </div>
 
-        {/* Section 2: Atmospheres */}
-        <div style={{ position: 'absolute', top: '110vh', left: '5vw', width: '38vw' }}>
-          <h2 className="text-xl md:text-3xl font-bold text-amber-400 mb-3 font-mono" style={{ filter: 'drop-shadow(0 0 10px rgba(251,191,36,0.8))' }}>
-            Venus &mdash; The Atmosphere
+        {/* Section 2: Spiritual Identities */}
+        <div style={{ position: 'absolute', top: '110vh', left: '3vw', width: '45vw' }}>
+          <h2 className="text-3xl md:text-5xl font-bold text-amber-400 mb-5 font-mono" style={{ filter: 'drop-shadow(0 0 10px rgba(251,191,36,0.8))' }}>
+            Spirtual Identities
           </h2>
-          <p className="text-sm md:text-lg text-amber-100 bg-black/60 p-5 rounded-xl border border-amber-500/30 backdrop-blur-sm">
-            A thick, toxic blanket of carbon dioxide with sulfuric acid clouds. Surface pressure is 92 times that of Earth. The runaway greenhouse effect pushes temperatures to 900&deg;F (475&deg;C).
-          </p>
-        </div>
-        <div style={{ position: 'absolute', top: '110vh', right: '5vw', width: '38vw' }}>
-          <h2 className="text-xl md:text-3xl font-bold text-red-400 mb-3 font-mono" style={{ filter: 'drop-shadow(0 0 10px rgba(248,113,113,0.8))' }}>
-            Mars &mdash; The Atmosphere
-          </h2>
-          <p className="text-sm md:text-lg text-red-100 bg-black/60 p-5 rounded-xl border border-red-500/30 backdrop-blur-sm">
-            A thin veil of carbon dioxide at just 1% of Earth&apos;s pressure. Temperatures average &minus;80&deg;F (&minus;62&deg;C). Massive dust storms can engulf the entire planet for months.
-          </p>
-        </div>
-
-        {/* Section 3: Surfaces */}
-        <div style={{ position: 'absolute', top: '210vh', left: '5vw', width: '38vw' }}>
-          <h2 className="text-xl md:text-3xl font-bold text-amber-400 mb-3 font-mono" style={{ filter: 'drop-shadow(0 0 10px rgba(251,191,36,0.8))' }}>
-            Venus &mdash; The Surface
-          </h2>
-          <p className="text-sm md:text-lg text-amber-100 bg-black/60 p-5 rounded-xl border border-amber-500/30 backdrop-blur-sm">
-            A volcanic hellscape of vast lava plains, towering shield volcanoes, and pancake domes. Maxwell Montes rises 7 miles above the mean surface. No liquid water can exist.
-          </p>
-        </div>
-        <div style={{ position: 'absolute', top: '210vh', right: '5vw', width: '38vw' }}>
-          <h2 className="text-xl md:text-3xl font-bold text-red-400 mb-3 font-mono" style={{ filter: 'drop-shadow(0 0 10px rgba(248,113,113,0.8))' }}>
-            Mars &mdash; The Surface
-          </h2>
-          <p className="text-sm md:text-lg text-red-100 bg-black/60 p-5 rounded-xl border border-red-500/30 backdrop-blur-sm">
-            A cold desert of iron oxide dust. Home to Olympus Mons &mdash; the tallest volcano in the solar system &mdash; and Valles Marineris, a canyon stretching 2,500 miles. Evidence of ancient water abounds.
+          <p className="text-lg md:text-2xl text-amber-100 bg-black/60 p-8 rounded-xl border border-amber-500/30 backdrop-blur-sm leading-relaxed">
+            ● Planets are seen as relatives with distinct spirits and roles
+            <br />
+            <br />
+            ● Venus is known as Ikwe Anung (The Women's Star)
+            <br />
+            <br />
+            ● Mars is associated with fire, action, animal traits, etc.
+            <br />
+            <br />
+            ● Venus's bright light and patterns were used to keep time and guide ceremony and daily life.
+            <br />
+            <br />
+            ● Linked to ancestors, calendars, and spirtual guides
           </p>
         </div>
 
-        {/* Section 4: Mythology */}
-        <div style={{ position: 'absolute', top: '310vh', left: '5vw', width: '38vw' }}>
-          <h2 className="text-xl md:text-3xl font-bold text-amber-400 mb-3 font-mono" style={{ filter: 'drop-shadow(0 0 10px rgba(251,191,36,0.8))' }}>
-            Goddess of Love
+        {/* Section 3: Mars Atmosphere */}
+        <div style={{ position: 'absolute', top: '210vh', left: '52vw', width: '45vw' }}>
+          <h2 className="text-3xl md:text-5xl font-bold text-red-400 mb-5 font-mono" style={{ filter: 'drop-shadow(0 0 10px rgba(248,113,113,0.8))' }}>
+            Our Connection to the Skies
           </h2>
-          <p className="text-sm md:text-lg text-amber-100 bg-black/60 p-5 rounded-xl border border-amber-500/30 backdrop-blur-sm">
-            Named after the Roman goddess of love and beauty. The brightest natural object in Earth&apos;s night sky after the Moon, Venus has been called both the &ldquo;morning star&rdquo; and &ldquo;evening star.&rdquo;
-          </p>
-        </div>
-        <div style={{ position: 'absolute', top: '310vh', right: '5vw', width: '38vw' }}>
-          <h2 className="text-xl md:text-3xl font-bold text-red-400 mb-3 font-mono" style={{ filter: 'drop-shadow(0 0 10px rgba(248,113,113,0.8))' }}>
-            God of War
-          </h2>
-          <p className="text-sm md:text-lg text-red-100 bg-black/60 p-5 rounded-xl border border-red-500/30 backdrop-blur-sm">
-            Named after the Roman god of war for its blood-red appearance. Mars has captivated humanity as a potential second home, inspiring science fiction and ambitious exploration missions.
+          <p className="text-lg md:text-2xl text-red-100 bg-black/60 p-8 rounded-xl border border-red-500/30 backdrop-blur-sm leading-relaxed">
+            ● The cycles of Ikwe Anung, are parallel to the foundational roles of women in our society.
+            <br />
+            - Known as the Morning Star, birth of new day.
+            <br />
+            - Shines bright when everything gets dark, reflects roles of women as leaders and protectors.
+            <br />
+            <br />
+            ● In Ininewuk (Cree) language structures the sky is reflected as something that actively surrounds and protect us.
+            <br />
+            <br />
+            ● Planets provided structural and spirtual guidance for humans and continue to do so.
+
           </p>
         </div>
 
-        {/* Section 5: Conclusion */}
-        <div style={{ position: 'absolute', top: '410vh', left: 0, width: '100vw', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <div style={{ width: '60vw', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <h2 className="text-2xl md:text-4xl font-bold text-white mb-4 font-mono" style={{ filter: 'drop-shadow(0 0 12px rgba(255,255,255,0.5))' }}>
-              Two Worlds, One Story
+        {/* Section 4: Conclusion */}
+        <div style={{ position: 'absolute', top: '310vh', left: 0, width: '100vw', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <div style={{ width: '85vw', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <h2 className="text-4xl md:text-6xl font-bold text-white mb-8 font-mono" style={{ filter: 'drop-shadow(0 0 12px rgba(255,255,255,0.5))' }}>
+              Separate Worlds
             </h2>
-            <p className="text-sm md:text-lg text-white/80 bg-black/60 p-5 rounded-xl border border-white/20 backdrop-blur-sm mb-6">
-              Venus and Mars sit on either side of Earth &mdash; one too hot, one too cold. Together they frame the delicate balance that makes our own world habitable.
+            <p className="text-xl md:text-3xl text-white bg-black/60 p-8 rounded-xl border border-white/20 backdrop-blur-sm mb-10 leading-relaxed">
+              Western and Indingeous astronomy are treated as completely separate fields.
+              <br />
+              <br />
+              <b>Indigenous astronomy is seen to be:</b>
+              <br />
+              - Non-scientific
+              <br />
+              - Related to culture and ceremony
+              <br />
+              - Not relevant to "real" astronomy
+              <br />
+              <br />
+              <b>Western astronomy is seen to be:</b>
+              <br />
+              - The norm/correct way
+              <br />
+              - Rigorous way of learning things.
+              <br />
+              <br />
+              In reality, they're <b>intertwined</b>. We must learn to embrace both sides of astronomy so as to gain a more diverse understanding.
+
             </p>
             <button
               onClick={onBack}
@@ -1567,7 +1576,7 @@ export function HeroCanvas({ launched, sceneState, selectedPlanet, onLaunchCompl
             </ScrollControls>
           )}
           {sceneState === 'presentation' && selectedPlanet === '/venus_and_mars' && (
-            <ScrollControls pages={4.5} damping={0.1}>
+            <ScrollControls pages={4.2} damping={0.1}>
               <VenusMarsScene onBack={onBackToSpace} />
             </ScrollControls>
           )}
