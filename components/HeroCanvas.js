@@ -2,7 +2,7 @@
 
 import { Suspense, useMemo, useRef, useState, useEffect } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { OrbitControls, Stars, useGLTF, Html, ScrollControls, Scroll, useScroll, useTexture, Billboard, Line } from '@react-three/drei';
+import { OrbitControls, Stars, useGLTF, Html, ScrollControls, Scroll, useScroll, useTexture, Billboard, Line, Center } from '@react-three/drei';
 import { MathUtils } from 'three';
 import * as THREE from 'three';
 
@@ -48,64 +48,52 @@ function RealisticStar({ pos, brightness, color = '#ffffff' }) {
   );
 }
 
-useGLTF.preload('/planet.glb');
+useGLTF.preload('/rocket_ship.glb');
 
-function SpinningNavModel() {
-  const { scene } = useGLTF('/planet.glb');
+function RocketShipNavModel() {
+  const { scene } = useGLTF('/rocket_ship.glb');
   const ref = useRef();
 
-  useFrame((_, delta) => {
+  useFrame((state, delta) => {
     if (ref.current) {
       ref.current.rotation.y += delta * 0.8;
-      ref.current.rotation.x += delta * 0.2;
+      ref.current.rotation.x = Math.sin(state.clock.elapsedTime * 2) * 0.1;
     }
   });
 
   return (
-    <group ref={ref}>
-      <primitive object={scene.clone()} scale={1.8} />
+    <group ref={ref} rotation={[0, 0, Math.PI / 6]}>
+      <Center>
+        <primitive object={scene.clone()} scale={1.44} />
+      </Center>
     </group>
   );
 }
 
-function PersistentNav({ showModel, onNavigate }) {
+function PersistentNav({ onNavigate }) {
   return (
-    <div className="fixed top-4 right-4 z-50 flex items-center justify-center">
-      {showModel ? (
-        <div
-          onClick={onNavigate}
-          className="w-16 h-16 md:w-20 md:h-20 cursor-pointer hover:scale-110 transition-transform"
-          title="Back to Space"
-        >
-          <Canvas camera={{ position: [0, 0, 5], fov: 40 }} transparent>
-            <ambientLight intensity={1.5} />
-            <directionalLight position={[2, 2, 2]} intensity={1} />
+    <div className="fixed top-4 right-4 z-[999] pointer-events-auto">
+      <div
+        onClick={onNavigate}
+        className="flex flex-col items-center justify-center cursor-pointer hover:scale-110 transition-transform"
+        title="Back to Space"
+      >
+        <div className="w-20 h-20 md:w-28 md:h-28">
+          <Canvas camera={{ position: [0, 0, 8], fov: 40 }} transparent>
+            <ambientLight intensity={2.5} />
+            <directionalLight position={[2, 2, 2]} intensity={2} />
             <Suspense fallback={null}>
-              <SpinningNavModel />
+              <RocketShipNavModel />
             </Suspense>
           </Canvas>
         </div>
-      ) : (
-        <button
-          onClick={onNavigate}
-          style={{
-            padding: '1rem 2rem',
-            background: 'linear-gradient(135deg, #1a0a2e, #0f2040)',
-            color: '#aaffdd',
-            fontFamily: '"Press Start 2P", monospace',
-            fontSize: '0.7rem',
-            border: '1px solid #33ffaa55',
-            borderRadius: '12px',
-            cursor: 'pointer',
-            boxShadow: '0 0 20px rgba(51,255,170,0.3), inset 0 0 20px rgba(51,255,170,0.05)',
-            textTransform: 'uppercase',
-            letterSpacing: '0.1em',
-          }}
-          className="hover:scale-105 transition-transform"
+        <div 
+          className="mt-1 text-white text-center opacity-80 uppercase tracking-widest"
+          style={{ fontFamily: '"Press Start 2P", monospace', fontSize: '0.8rem' }}
         >
-          ← Back to Space
-        </button>
-      )}
+          Back to Space
+        </div>
+      </div>
     </div>
   );
 }
@@ -122,7 +110,17 @@ function ConstellationScene({ onBack }) {
       name: 'Ojiig — The Fisher',
       nation: 'Anishinaabe / Ojibwe',
       subtitle: 'Guardian of the Seasons',
-      description: 'In Anishinaabe sky knowledge, Ojiig the Fisher ran across the winter sky to break open the vault of heaven and release the summer birds. His trail of stars marks the change of seasons, and his sacrifice is honoured each spring when migratory birds return.',
+      description: (
+        <>
+          ● Rises high during spring, signals arrival of warmth and melting of snow.
+          <br />
+          <br />
+          ● Represents a heroic fisher cat who travelled to the spirit world to release summer birds and bring back warmth.
+          <br />
+          <br />
+          ● Acted as a precise seasonal clock to prepare for harsh or nicer weather
+        </>
+      ),
       stars: [
         { pos: [-2.2, 0.0, 0], b: 1.2 },
         { pos: [-1.3, 0.5, 0], b: 1.0 },
@@ -141,7 +139,17 @@ function ConstellationScene({ onBack }) {
       name: 'Muin — The Great Bear',
       nation: 'Mi\'kmaq',
       subtitle: 'The Eternal Hunt',
-      description: 'The Mi\'kmaq see a Great Bear pursued by seven hunters across the sky all year long. In autumn the bear is wounded and her blood reddens the leaves. She hibernates through winter, is reborn in spring, and the chase begins anew — a story that explains the turning of the seasons through the stars.',
+      description: (
+        <>
+          ● Tells a story of a giant bear (Muin) chased by seven bird hunters across the sky.
+          <br />
+          <br />
+          ● As the constellation shifts through the year, it shows the natural cycles of earth.
+          <br />
+          <br />
+          ● In the fall, the constellation tilts on its back, representing The Bear preparing to hibernate. 
+        </>
+      ),
       stars: [
         { pos: [-0.5, 0.5, 0], b: 1.0 },
         { pos: [0.5, 0.5, 0], b: 1.0 },
@@ -160,7 +168,17 @@ function ConstellationScene({ onBack }) {
       name: 'A\'nó:wara — The Turtle',
       nation: 'Haudenosaunee / Iroquois',
       subtitle: 'Foundation of the World',
-      description: 'In Haudenosaunee creation, the world was built on the back of a great Turtle. The Turtle constellation watches over the night sky as a reminder that Turtle Island — North America — was formed through the sacrifice and co-operation of the animals. The stars of its shell shimmer with this ancient responsibility.',
+      description: (
+        <>
+          ● Represents turtle from the creation story whose back holds up the world, known as Turtle Island.
+          <br />
+          <br />
+          ● The turtle shell has 13 central scales, tracking the 13 moon cycles in a year.
+          <br />
+          <br />
+          ● Surrounded by 28 smaller scales, tracking the 28 days between each cycle, thus acting as a highly accurate timekeeping system.
+        </>
+      ),
       stars: [
         { pos: [0.0, 0.0, 0], b: 1.3 },
         { pos: [-1.2, 0.8, 0], b: 1.0 },
@@ -262,13 +280,12 @@ function ConstellationScene({ onBack }) {
 
       {/* HTML text panels */}
       <Scroll html>
-        <PersistentNav showModel={showModel} onNavigate={onBack} />
         {constellations.map((c, i) => (
           <div
             key={c.name}
             style={{
               position: 'absolute',
-              top: '60vh',
+              top: '45vh',
               left: `${i * 100 + 22}vw`,
               width: '44vw',
             }}
@@ -297,7 +314,7 @@ function ConstellationScene({ onBack }) {
               {c.subtitle}
             </h3>
             <p
-              className="text-sm md:text-base text-white/85 bg-black/55 p-5 rounded-2xl backdrop-blur-md leading-relaxed"
+              className="text-lg md:text-xl text-white/85 bg-black/55 p-7 rounded-2xl backdrop-blur-md leading-relaxed"
               style={{
                 border: `1px solid ${c.color}35`,
                 boxShadow: `inset 0 0 30px ${c.color}08, 0 0 20px ${c.color}12`,
@@ -508,12 +525,6 @@ function PleiadesScene({ onBack }) {
           <p className="text-lg md:text-xl text-blue-100 bg-black/60 p-6 rounded-xl border border-blue-500/30 backdrop-blur-sm">
             At roughly 100 million years old, these young blue stars are surrounded by a faint reflection nebula. The cluster spans about 13 light-years and lies approximately 444 light-years from Earth.
           </p>
-          <button
-            onClick={onBack}
-            className="mt-8 px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg transition-all shadow-[0_0_15px_rgba(37,99,235,0.6)] font-mono uppercase tracking-wider"
-          >
-            Back to Space
-          </button>
         </div>
       </Scroll>
     </>
@@ -741,12 +752,6 @@ function VenusMarsScene({ onBack }) {
               In reality, they're <b>intertwined</b>. We must learn to embrace both sides of astronomy so as to gain a more diverse understanding.
 
             </p>
-            <button
-              onClick={onBack}
-              className="px-8 py-4 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-lg transition-all shadow-[0_0_15px_rgba(147,51,234,0.6)] font-mono uppercase tracking-wider"
-            >
-              Back to Space
-            </button>
           </div>
         </div>
       </Scroll>
@@ -1417,14 +1422,6 @@ function DreamcatcherScene({ onBack }) {
           <p className="text-sm md:text-lg text-teal-100 bg-black/50 p-5 rounded-xl border border-teal-500/30 inline-block text-left backdrop-blur-sm">
             This perspective fosters a deep sense of stewardship and belonging. By understanding the cosmos as relational rather than purely physical, Indigenous communities maintain ancient practices that harmonize human activities with celestial cycles—a profound connection that modern science is only beginning to fully appreciate.
           </p>
-          <div className="mt-10">
-            <button
-              onClick={onBack}
-              className="px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg transition-all shadow-[0_0_15px_rgba(37,99,235,0.6)] font-mono uppercase tracking-wider"
-            >
-              Back to Space
-            </button>
-          </div>
         </div>
       </Scroll>
     </>
@@ -1475,6 +1472,9 @@ export function HeroCanvas({ launched, sceneState, selectedPlanet, onLaunchCompl
 
   return (
     <div className="h-screen w-full overflow-hidden bg-[#0f172a]">
+      {sceneState === 'presentation' && (
+        <PersistentNav onNavigate={onBackToSpace} />
+      )}
       <Canvas camera={{ position: cameraPos, fov }}>
         <CameraUpdater cameraPos={cameraPos} fov={fov} />
         <ambientLight intensity={1.2} />
@@ -1523,7 +1523,7 @@ export function HeroCanvas({ launched, sceneState, selectedPlanet, onLaunchCompl
 
 
           {sceneState === 'presentation' && selectedPlanet === '/download (2).png' && (
-            <ScrollControls horizontal pages={4} damping={0.1}>
+            <ScrollControls horizontal pages={3} damping={0.1}>
               <ConstellationScene onBack={onBackToSpace} />
             </ScrollControls>
           )}
