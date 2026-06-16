@@ -5,6 +5,8 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, Stars, useGLTF, Html, ScrollControls, Scroll, useScroll, useTexture, Billboard, Line, Center } from '@react-three/drei';
 import { MathUtils } from 'three';
 import * as THREE from 'three';
+import { createPortal } from 'react-dom';
+
 
 function CameraUpdater({ cameraPos, fov }) {
   const { camera } = useThree();
@@ -87,7 +89,7 @@ function PersistentNav({ onNavigate }) {
             </Suspense>
           </Canvas>
         </div>
-        <div 
+        <div
           className="mt-1 text-white text-center opacity-80 uppercase tracking-widest"
           style={{ fontFamily: '"Press Start 2P", monospace', fontSize: '0.8rem' }}
         >
@@ -147,7 +149,7 @@ function ConstellationScene({ onBack }) {
           ● As the constellation shifts through the year, it shows the natural cycles of earth.
           <br />
           <br />
-          ● In the fall, the constellation tilts on its back, representing The Bear preparing to hibernate. 
+          ● In the fall, the constellation tilts on its back, representing The Bear preparing to hibernate.
         </>
       ),
       stars: [
@@ -314,7 +316,7 @@ function ConstellationScene({ onBack }) {
               {c.subtitle}
             </h3>
             <p
-              className="text-lg md:text-xl text-white/85 bg-black/55 p-7 rounded-2xl backdrop-blur-md leading-relaxed"
+              className="text-lg md:text-xl text-white/85 bg-black/55 p-7 rounded-2xl backdrop-blur-md leading-relaxed font-mono"
               style={{
                 border: `1px solid ${c.color}35`,
                 boxShadow: `inset 0 0 30px ${c.color}08, 0 0 20px ${c.color}12`,
@@ -492,37 +494,37 @@ function PleiadesScene({ onBack }) {
       {/* Text panels revealed by vertical scroll */}
       <Scroll html>
         <div style={{ position: 'absolute', top: '8vh', left: '5vw', width: '40vw' }}>
-          <h1 className="text-3xl md:text-5xl font-bold text-blue-300 mb-4 font-mono" style={{ filter: 'drop-shadow(0 0 14px rgba(147,197,253,0.9))' }}>
+          <h1 className="text-3xl md:text-5xl font-bold text-blue-300 mb-4 font-mono" style={{ fontFamily: '"Press Start 2P", monospace', filter: 'drop-shadow(0 0 14px rgba(147,197,253,0.9))' }}>
             The Pleiades
           </h1>
-          <p className="text-lg md:text-xl text-blue-100 bg-black/60 p-6 rounded-xl border border-blue-500/30 backdrop-blur-sm">
+          <p className="text-lg md:text-xl text-blue-100 bg-black/60 p-6 rounded-xl border border-blue-500/30 backdrop-blur-sm font-mono">
             The Seven Sisters &mdash; an open star cluster in the constellation Taurus and one of the nearest clusters to Earth. Visible to the naked eye, the Pleiades have been known since antiquity.
           </p>
         </div>
 
         <div style={{ position: 'absolute', top: '120vh', right: '5vw', width: '40vw' }}>
-          <h2 className="text-2xl md:text-4xl font-bold text-blue-300 mb-4 font-mono" style={{ filter: 'drop-shadow(0 0 14px rgba(147,197,253,0.9))' }}>
+          <h2 className="text-2xl md:text-4xl font-bold text-blue-300 mb-4 font-mono" style={{ fontFamily: '"Press Start 2P", monospace', filter: 'drop-shadow(0 0 14px rgba(147,197,253,0.9))' }}>
             The Seven Sisters
           </h2>
-          <p className="text-lg md:text-xl text-blue-100 bg-black/60 p-6 rounded-xl border border-blue-500/30 backdrop-blur-sm">
+          <p className="text-lg md:text-xl text-blue-100 bg-black/60 p-6 rounded-xl border border-blue-500/30 backdrop-blur-sm font-mono">
             Named after the seven daughters of Atlas and Pleione: Alcyone, Maia, Electra, Taygeta, Celaeno, Sterope, and Merope. Each star tells its own story in the tapestry of Greek mythology.
           </p>
         </div>
 
         <div style={{ position: 'absolute', top: '230vh', left: '5vw', width: '40vw' }}>
-          <h2 className="text-2xl md:text-4xl font-bold text-blue-300 mb-4 font-mono" style={{ filter: 'drop-shadow(0 0 14px rgba(147,197,253,0.9))' }}>
+          <h2 className="text-2xl md:text-4xl font-bold text-blue-300 mb-4 font-mono" style={{ fontFamily: '"Press Start 2P", monospace', filter: 'drop-shadow(0 0 14px rgba(147,197,253,0.9))' }}>
             Myth &amp; Legend
           </h2>
-          <p className="text-lg md:text-xl text-blue-100 bg-black/60 p-6 rounded-xl border border-blue-500/30 backdrop-blur-sm">
+          <p className="text-lg md:text-xl text-blue-100 bg-black/60 p-6 rounded-xl border border-blue-500/30 backdrop-blur-sm font-mono">
             In Greek mythology, the sisters were companions of Artemis. Pursued by the hunter Orion, Zeus transformed them into stars for protection. Nearly every ancient culture told stories about this brilliant cluster.
           </p>
         </div>
 
         <div style={{ position: 'absolute', top: '340vh', right: '5vw', width: '40vw' }}>
-          <h2 className="text-2xl md:text-4xl font-bold text-blue-300 mb-4 font-mono" style={{ filter: 'drop-shadow(0 0 14px rgba(147,197,253,0.9))' }}>
+          <h2 className="text-2xl md:text-4xl font-bold text-blue-300 mb-4 font-mono" style={{ fontFamily: '"Press Start 2P", monospace', filter: 'drop-shadow(0 0 14px rgba(147,197,253,0.9))' }}>
             A Stellar Nursery
           </h2>
-          <p className="text-lg md:text-xl text-blue-100 bg-black/60 p-6 rounded-xl border border-blue-500/30 backdrop-blur-sm">
+          <p className="text-lg md:text-xl text-blue-100 bg-black/60 p-6 rounded-xl border border-blue-500/30 backdrop-blur-sm font-mono">
             At roughly 100 million years old, these young blue stars are surrounded by a faint reflection nebula. The cluster spans about 13 light-years and lies approximately 444 light-years from Earth.
           </p>
         </div>
@@ -671,7 +673,7 @@ function VenusMarsScene({ onBack }) {
         {/* Title */}
         <div style={{ position: 'absolute', top: '5vh', left: 0, width: '100vw', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <div style={{ width: '95vw', textAlign: 'center' }}>
-            <h1 className="text-5xl md:text-7xl font-bold text-white mb-2 font-mono" style={{ filter: 'drop-shadow(0 0 14px rgba(255,255,255,0.5))' }}>
+            <h1 className="text-5xl md:text-7xl font-bold text-white mb-2 font-mono" style={{ fontFamily: '"Press Start 2P", monospace', filter: 'drop-shadow(0 0 14px rgba(255,255,255,0.5))' }}>
               Venus &amp; Mars
             </h1>
             <p className="text-2xl md:text-4xl text-white/60 font-mono italic mt-4">
@@ -682,10 +684,10 @@ function VenusMarsScene({ onBack }) {
 
         {/* Section 2: Spiritual Identities */}
         <div style={{ position: 'absolute', top: '110vh', left: '3vw', width: '45vw' }}>
-          <h2 className="text-3xl md:text-5xl font-bold text-amber-400 mb-5 font-mono" style={{ filter: 'drop-shadow(0 0 10px rgba(251,191,36,0.8))' }}>
+          <h2 className="text-3xl md:text-5xl font-bold text-amber-400 mb-5 font-mono" style={{ fontFamily: '"Press Start 2P", monospace', filter: 'drop-shadow(0 0 10px rgba(251,191,36,0.8))' }}>
             Spirtual Identities
           </h2>
-          <p className="text-lg md:text-2xl text-amber-100 bg-black/60 p-8 rounded-xl border border-amber-500/30 backdrop-blur-sm leading-relaxed">
+          <p className="text-lg md:text-2xl text-amber-100 bg-black/60 p-8 rounded-xl border border-amber-500/30 backdrop-blur-sm leading-relaxed font-mono">
             ● Planets are seen as relatives with distinct spirits and roles
             <br />
             <br />
@@ -704,10 +706,10 @@ function VenusMarsScene({ onBack }) {
 
         {/* Section 3: Mars Atmosphere */}
         <div style={{ position: 'absolute', top: '210vh', left: '52vw', width: '45vw' }}>
-          <h2 className="text-3xl md:text-5xl font-bold text-red-400 mb-5 font-mono" style={{ filter: 'drop-shadow(0 0 10px rgba(248,113,113,0.8))' }}>
+          <h2 className="text-3xl md:text-5xl font-bold text-red-400 mb-5 font-mono" style={{ fontFamily: '"Press Start 2P", monospace', filter: 'drop-shadow(0 0 10px rgba(248,113,113,0.8))' }}>
             Our Connection to the Skies
           </h2>
-          <p className="text-lg md:text-2xl text-red-100 bg-black/60 p-8 rounded-xl border border-red-500/30 backdrop-blur-sm leading-relaxed">
+          <p className="text-lg md:text-2xl text-red-100 bg-black/60 p-8 rounded-xl border border-red-500/30 backdrop-blur-sm leading-relaxed font-mono">
             ● The cycles of Ikwe Anung, are parallel to the foundational roles of women in our society.
             <br />
             - Known as the Morning Star, birth of new day.
@@ -726,10 +728,10 @@ function VenusMarsScene({ onBack }) {
         {/* Section 4: Conclusion */}
         <div style={{ position: 'absolute', top: '310vh', left: 0, width: '100vw', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <div style={{ width: '85vw', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <h2 className="text-4xl md:text-6xl font-bold text-white mb-8 font-mono" style={{ filter: 'drop-shadow(0 0 12px rgba(255,255,255,0.5))' }}>
+            <h2 className="text-4xl md:text-6xl font-bold text-white mb-8 font-mono" style={{ fontFamily: '"Press Start 2P", monospace', filter: 'drop-shadow(0 0 12px rgba(255,255,255,0.5))' }}>
               Separate Worlds
             </h2>
-            <p className="text-xl md:text-3xl text-white bg-black/60 p-8 rounded-xl border border-white/20 backdrop-blur-sm mb-10 leading-relaxed">
+            <p className="text-xl md:text-3xl text-white bg-black/60 p-8 rounded-xl border border-white/20 backdrop-blur-sm mb-10 leading-relaxed font-mono">
               Western and Indingeous astronomy are treated as completely separate fields.
               <br />
               <br />
@@ -1366,14 +1368,20 @@ function DreamcatcherScene({ onBack }) {
     const size = box.getSize(new THREE.Vector3());
     const maxDim = Math.max(size.x, size.y, size.z);
 
+    // Offset the pivot point upwards so it spins around the circle's center
+    center.y += size.y * 0.25;
+
     s.position.copy(center).negate();
 
-    return { cloned: s, modelScale: maxDim > 0 ? 6.0 / maxDim : 1 };
+    return { cloned: s, modelScale: maxDim > 0 ? 80.0 / maxDim : 1 };
   }, [scene]);
 
   useFrame((state, delta) => {
     if (ref.current) {
-      ref.current.position.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.05;
+      ref.current.position.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.3;
+      ref.current.rotation.z = -scroll.offset * Math.PI * 2;
+      ref.current.rotation.y = 0.15;
+      ref.current.rotation.x = 0.05;
     }
   });
 
@@ -1381,53 +1389,85 @@ function DreamcatcherScene({ onBack }) {
     <>
       <color attach="background" args={['#1e102e']} />
       <fog attach="fog" args={['#1e102e', 50, 150]} />
-      <ambientLight intensity={1.0} />
+      <ambientLight intensity={1.5} />
       <Stars radius={200} depth={80} count={10000} factor={5} saturation={0} fadeSpeed={0.4} />
 
-      <group ref={ref} position={[0, 0, 0]} scale={modelScale}>
-        <primitive object={cloned} />
+      <group position={[-20, 5, -5]}>
+        <group ref={ref} scale={modelScale}>
+          <primitive object={cloned} />
+        </group>
       </group>
 
-      <pointLight position={[5, 5, 5]} intensity={2} color="#ffaa55" />
-      <pointLight position={[-5, -5, -5]} intensity={1.5} color="#55aaff" />
+      <pointLight position={[5, 5, 5]} intensity={2.5} color="#ffaa55" />
+      <pointLight position={[-5, -5, -5]} intensity={2} color="#55aaff" />
 
+      {/* Text panels revealed by vertical scroll */}
       <Scroll html>
-        <div style={{ position: 'absolute', top: '5vh', left: 0, width: '100vw', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <div style={{ width: '80vw', textAlign: 'center' }}>
-            <h1 className="text-3xl md:text-5xl font-bold text-white mb-2 font-mono" style={{ filter: 'drop-shadow(0 0 14px rgba(255,255,255,0.5))' }}>
-              Indigenous Astronomy
-            </h1>
-            <p className="text-lg md:text-xl text-white/60 font-mono italic">
-              The Cosmos as Community
-            </p>
-          </div>
-        </div>
-
-        <div style={{ position: 'absolute', top: '110vh', left: '10vw', width: '35vw' }}>
-          <h2 className="text-xl md:text-3xl font-bold text-blue-300 mb-3 font-mono" style={{ filter: 'drop-shadow(0 0 10px rgba(147,197,253,0.8))' }}>More Than Stars</h2>
-          <p className="text-sm md:text-lg text-blue-100 bg-black/50 p-5 rounded-xl border border-blue-500/30 backdrop-blur-sm">
-            In many Indigenous traditions, the night sky is not a collection of inanimate objects to be measured, but a living community. The stars, planets, and constellations are ancestors, spirits, and teachers whose stories guide life on Earth.
+        {/* Title */}
+        <div style={{ position: 'absolute', top: '10vh', left: '50vw', width: '45vw' }}>
+          <h1 className="text-5xl md:text-7xl font-bold text-white mb-2 font-mono" style={{ fontFamily: '"Press Start 2P", monospace', filter: 'drop-shadow(0 0 14px rgba(255,255,255,0.5))' }}>
+            Dreamcatchers
+          </h1>
+          <p className="text-2xl md:text-4xl text-white/60 font-mono italic mt-4">
+            Making Dreams Come True
           </p>
         </div>
 
-        <div style={{ position: 'absolute', top: '210vh', right: '10vw', width: '35vw' }}>
-          <h2 className="text-xl md:text-3xl font-bold text-orange-300 mb-3 font-mono" style={{ filter: 'drop-shadow(0 0 10px rgba(253,186,116,0.8))' }}>Challenging Western Views</h2>
-          <p className="text-sm md:text-lg text-orange-100 bg-black/50 p-5 rounded-xl border border-orange-500/30 backdrop-blur-sm">
-            Western astronomy often seeks to separate the observer from the observed, focusing on quantifiable data. Indigenous knowledge systems challenge this separation, emphasizing that humans are an integral part of the cosmic web. The sky is a reflection of the earth, and what happens above intimately affects what happens below.
+        {/* Panel 1 */}
+        <div style={{ position: 'absolute', top: '110vh', left: '50vw', width: '45vw' }}>
+          <h2 className="text-3xl md:text-5xl font-bold text-purple-400 mb-5 font-mono" style={{ fontFamily: '"Press Start 2P", monospace', filter: 'drop-shadow(0 0 10px rgba(192,132,252,0.8))' }}>
+            Origins of Dreams
+          </h2>
+          <p className="text-lg md:text-2xl text-purple-100 bg-black/60 p-8 rounded-xl border border-purple-500/30 backdrop-blur-sm leading-relaxed font-mono">
+            ● Asibikaashi (Spider Woman) brought the sun back to the sky every morning and protected children from negativity.
+            <br />
+            <br />
+            ● Soon, the nation spread and it became hard for Asibikaashi to protect and watch over children.
+            <br />
+            <br />
+            ● Grandmothers, mothers, and sisters thus began weaving dreamcatchers to protect children. Dreamcatchers usually have 8 points, to honor the Spider Woman.
           </p>
         </div>
 
-        <div style={{ position: 'absolute', top: '310vh', left: '10vw', width: '80vw', textAlign: 'center' }}>
-          <h2 className="text-xl md:text-3xl font-bold text-teal-300 mb-3 font-mono" style={{ filter: 'drop-shadow(0 0 10px rgba(94,234,212,0.8))' }}>A Tapestry of Connection</h2>
-          <p className="text-sm md:text-lg text-teal-100 bg-black/50 p-5 rounded-xl border border-teal-500/30 inline-block text-left backdrop-blur-sm">
-            This perspective fosters a deep sense of stewardship and belonging. By understanding the cosmos as relational rather than purely physical, Indigenous communities maintain ancient practices that harmonize human activities with celestial cycles—a profound connection that modern science is only beginning to fully appreciate.
+        {/* Panel 2 */}
+        <div style={{ position: 'absolute', top: '210vh', left: '50vw', width: '45vw' }}>
+          <h2 className="text-3xl md:text-5xl font-bold text-pink-400 mb-5 font-mono" style={{ fontFamily: '"Press Start 2P", monospace', filter: 'drop-shadow(0 0 10px rgba(244,114,182,0.8))' }}>
+            Wilfred Buck
+          </h2>
+          <p className="text-lg md:text-2xl text-pink-100 bg-black/60 p-8 rounded-xl border border-pink-500/30 backdrop-blur-sm leading-relaxed font-mono">
+            ● Wilfred Buck is a key figure who shows Indigenous communities going forward and representing Indigneous astronomy is possible.
+            <br />
+            - Created a mobile planetarium with Indigenous constellations he takes around the world.
+            <br />
+            - Revitalized 38 Cree constellations by working with Elders and Knowledge Keepers for decades and created Ininew Achakos Masinkan, a Cree star map.
+            <br />
+            <br />
+            ● Invoked strong emotions in elders and other Indigenous communities, showing real community impacts.
+            <br />
+            <br />
+            ● Continues to push for Indigenous knowledge in astronomical fields.
+          </p>
+        </div>
+
+        {/* Panel 3 */}
+        <div style={{ position: 'absolute', top: '360vh', left: '50vw', width: '45vw' }}>
+          <h2 className="text-3xl md:text-5xl font-bold text-teal-400 mb-5 font-mono" style={{ fontFamily: '"Press Start 2P", monospace', filter: 'drop-shadow(0 0 10px rgba(45,212,191,0.8))' }}>
+            Dreams stay Dreams
+          </h2>
+          <p className="text-lg md:text-2xl text-teal-100 bg-black/60 p-8 rounded-xl border border-teal-500/30 backdrop-blur-sm leading-relaxed font-mono">
+            ● Indigenous perspectives about astronomy are restricted and often ignored in society.
+            <br />
+            <br />
+            ● Due to this, aspiring Indigneous astronmers do not get opportunities to grow their knowledge and provide others with knowledge about Indigenous astronomy.
+            <br />
+            <br />
+            ● Ignorance like this leads to lack of diversity in our knowledge and loss of traditions.
           </p>
         </div>
       </Scroll>
     </>
   );
 }
-
 
 export function HeroCanvas({ launched, sceneState, selectedPlanet, onLaunchComplete, onPeak, onLaunchStart, onReturnToEarth, onPlanetClick, onBackToSpace, cameraPos = [0, -0.5, 20], fov = 38 }) {
   const lavaGltf = useGLTF('/just_lava.glb');
@@ -1445,7 +1485,7 @@ export function HeroCanvas({ launched, sceneState, selectedPlanet, onLaunchCompl
         { modelPath: '/earth.glb', position: [radius * Math.cos(1 * angle), -1.0, radius * Math.sin(1 * angle)], ringColor: null, scale: 0.45, label: 'Back into Orbit', onClick: onReturnToEarth },
         { modelPath: '/download (2).png', position: [radius * Math.cos(2 * angle), 1.0, radius * Math.sin(2 * angle)], ringColor: null, scale: 0.8, label: 'Constellations', onClick: () => onPlanetClick('/download (2).png') },
         { isGroup: true, id: 'pleiades', position: [radius * Math.cos(3 * angle), 2.0, radius * Math.sin(3 * angle)], label: 'Pleiades', onClick: () => onPlanetClick('/pleiades') },
-        { isGroup: true, id: 'dreamcatcher', position: [radius * Math.cos(4 * angle), 0.5, radius * Math.sin(4 * angle)], label: 'Starcatchers', onClick: () => onPlanetClick('/dreamcatcher') },
+        { isGroup: true, id: 'dreamcatcher', position: [radius * Math.cos(4 * angle), 0.5, radius * Math.sin(4 * angle)], label: 'Dreamcatchers', onClick: () => onPlanetClick('/dreamcatcher') },
       ];
     } else {
       // Initial scene: empty (celestial bodies appear after launch into space)
