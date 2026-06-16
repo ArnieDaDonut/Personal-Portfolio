@@ -135,38 +135,10 @@ function ConstellationScene({ onBack }) {
       lines: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6]],
       color: '#ff7722',
     },
+
+
     {
-      name: 'Kokumthásanêw — The Old Woman',
-      nation: 'Cree',
-      subtitle: 'Keeper of Wisdom',
-      description: 'The Cree recognize Kokumthásanêw — the Grandmother — in the W-shaped group of stars high in the northern sky. She never sets below the horizon in northern Canada, always watching. Elders say she is the keeper of stories and guides hunters home through long winter nights.',
-      stars: [
-        { pos: [-2.2, 1.0, 0], b: 1.1 },
-        { pos: [-1.1, -0.6, 0], b: 1.2 },
-        { pos: [0.0, 0.8, 0], b: 1.3 },
-        { pos: [1.1, -0.6, 0], b: 1.1 },
-        { pos: [2.2, 0.8, 0], b: 1.0 },
-      ],
-      lines: [[0, 1], [1, 2], [2, 3], [3, 4]],
-      color: '#cc88ff',
-    },
-    {
-      name: 'Aagjuuk — The Pair',
-      nation: 'Inuit',
-      subtitle: 'Harbingers of Dawn',
-      description: 'Aagjuuk are two bright stars watched closely by Inuit navigators. Their first appearance on the eastern horizon before sunrise signals the return of the sun after the long polar night. Hunters relied on their rising to plan travel across sea ice during the critical months of early spring.',
-      stars: [
-        { pos: [-1.4, 0.6, 0], b: 1.5 },
-        { pos: [1.4, -0.6, 0], b: 1.4 },
-        { pos: [-2.0, -0.5, 0], b: 0.6 },
-        { pos: [2.0, 0.5, 0], b: 0.55 },
-        { pos: [0.0, 1.8, 0], b: 0.5 },
-      ],
-      lines: [[0, 1], [2, 0], [1, 3]],
-      color: '#44ddff',
-    },
-    {
-      name: 'Kisamik — The Great Bear',
+      name: 'Muin — The Great Bear',
       nation: 'Mi\'kmaq',
       subtitle: 'The Eternal Hunt',
       description: 'The Mi\'kmaq see a Great Bear pursued by seven hunters across the sky all year long. In autumn the bear is wounded and her blood reddens the leaves. She hibernates through winter, is reborn in spring, and the chase begins anew — a story that explains the turning of the seasons through the stars.',
@@ -183,25 +155,9 @@ function ConstellationScene({ onBack }) {
       lines: [[0, 1], [1, 2], [2, 3], [3, 0], [1, 4], [4, 5], [5, 6], [6, 7]],
       color: '#ff4466',
     },
+
     {
-      name: 'Iniskim — The Buffalo',
-      nation: 'Blackfoot / Niitsitapi',
-      subtitle: 'Sacred Stone of Power',
-      description: 'The Blackfoot / Niitsitapi people know a group of stars as Iniskim, the sacred Buffalo Stone. Associated with the power to call the buffalo herds to the hunt, this constellation was central to ceremony and survival on the plains. Medicine bundles containing Buffalo Stones were among the most sacred objects held by families.',
-      stars: [
-        { pos: [0.0, 2.0, 0], b: 1.1 },
-        { pos: [-1.0, 0.5, 0], b: 1.0 },
-        { pos: [1.0, 0.5, 0], b: 1.0 },
-        { pos: [-1.6, -1.0, 0], b: 0.9 },
-        { pos: [1.6, -1.0, 0], b: 0.9 },
-        { pos: [0.0, -0.5, 0], b: 1.2 },
-        { pos: [0.0, -2.0, 0], b: 1.0 },
-      ],
-      lines: [[0, 1], [0, 2], [1, 3], [2, 4], [1, 5], [2, 5], [5, 6], [3, 6], [4, 6]],
-      color: '#ffcc00',
-    },
-    {
-      name: 'Hadí:yęˀs — The Turtle',
+      name: 'A\'nó:wara — The Turtle',
       nation: 'Haudenosaunee / Iroquois',
       subtitle: 'Foundation of the World',
       description: 'In Haudenosaunee creation, the world was built on the back of a great Turtle. The Turtle constellation watches over the night sky as a reminder that Turtle Island — North America — was formed through the sacrifice and co-operation of the animals. The stars of its shell shimmer with this ancient responsibility.',
@@ -219,6 +175,7 @@ function ConstellationScene({ onBack }) {
       lines: [[0, 1], [0, 2], [0, 3], [0, 4], [1, 2], [3, 4], [1, 3], [2, 4], [1, 5], [2, 5], [1, 6], [3, 6], [2, 7], [4, 7], [3, 8], [4, 8]],
       color: '#33ffaa',
     },
+
   ], []);
 
   useFrame((state) => {
@@ -1566,7 +1523,7 @@ export function HeroCanvas({ launched, sceneState, selectedPlanet, onLaunchCompl
 
 
           {sceneState === 'presentation' && selectedPlanet === '/download (2).png' && (
-            <ScrollControls horizontal pages={7} damping={0.1}>
+            <ScrollControls horizontal pages={4} damping={0.1}>
               <ConstellationScene onBack={onBackToSpace} />
             </ScrollControls>
           )}
