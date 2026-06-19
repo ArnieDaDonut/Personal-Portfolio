@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"/Users/sameetmandewalker/Documents/Genouk/dist/stopHook.js\""
+            "command": "node \"/Users/sameetmandewalker/.vscode/extensions/genouk-dev.genouk-1.0.1/dist/stopHook.js\""
           }
         ]
       }

@@ -3,7 +3,7 @@
     "genouk-memory": {
       "command": "node",
       "args": [
-        "/Users/sameetmandewalker/Documents/Genouk/dist/mcpServer.js"
+        "/Users/sameetmandewalker/.vscode/extensions/genouk-dev.genouk-1.0.1/dist/mcpServer.js"
       ],
       "env": {
         "GENOUK_REPO": "/Users/sameetmandewalker/Documents/Personal-Portfolio"

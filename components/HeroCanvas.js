@@ -13,6 +13,7 @@ function CameraUpdater({ cameraPos, fov }) {
   useEffect(() => {
     camera.position.set(...cameraPos);
     camera.fov = fov;
+    camera.lookAt(0, 0, 0);
     camera.updateProjectionMatrix();
   }, [cameraPos, fov, camera]);
   return null;
@@ -94,7 +95,7 @@ function PersistentNav({ onNavigate }) {
           style={{ fontFamily: '"Press Start 2P", monospace', fontSize: '0.8rem' }}
         >
           Back to Space
-        </div>
+    b    </div>
       </div>
     </div>
   );
@@ -287,7 +288,7 @@ function ConstellationScene({ onBack }) {
             key={c.name}
             style={{
               position: 'absolute',
-              top: '45vh',
+              top: '60vh',
               left: `${i * 100 + 22}vw`,
               width: '44vw',
             }}
@@ -732,7 +733,9 @@ function VenusMarsScene({ onBack }) {
               Separate Worlds
             </h2>
             <p className="text-xl md:text-3xl text-white bg-black/60 p-8 rounded-xl border border-white/20 backdrop-blur-sm mb-10 leading-relaxed font-mono">
-              Western and Indingeous astronomy are treated as completely separate fields.
+              Western and Indingeous astronomy are treated as completely separate fields
+              <br />
+              (If I Ever Get Out of Here).
               <br />
               <br />
               <b>Indigenous astronomy is seen to be:</b>
@@ -752,6 +755,9 @@ function VenusMarsScene({ onBack }) {
               <br />
               <br />
               In reality, they're <b>intertwined</b>. We must learn to embrace both sides of astronomy so as to gain a more diverse understanding.
+              <br />
+              <br />
+              <b>How do Indigenous beliefs, stories, and traditions related to the cosmos reflect or challenge modern & Western interpretations, and how does it reflect how different Indigenous communities connect to the world?</b>
 
             </p>
           </div>
@@ -1010,134 +1016,6 @@ function DreamcatcherObject({ position, onClick, label }) {
 
 useGLTF.preload('/dreamcatcher.glb');
 
-function PleiadesCluster({ position, onClick, label }) {
-  const [hovered, setHovered] = useState(false);
-
-  const hoverScale = useRef(1);
-  const ref = useRef();
-
-  // Main bright sisters — positions match the real cluster's distinctive shape
-  const mainStars = useMemo(() => [
-    { pos: [0.2, 0.0, 0], size: 1.0 },  // Alcyone — brightest, center
-    { pos: [1.5, -1.3, 0.1], size: 0.85 }, // Atlas
-    { pos: [1.75, -1.1, 0.05], size: 0.65 }, // Pleione (close to Atlas)
-    { pos: [-0.7, 1.3, 0.15], size: 0.80 }, // Maia
-    { pos: [-1.6, -0.1, -0.1], size: 0.78 }, // Electra
-    { pos: [-0.3, 2.1, 0.2], size: 0.60 }, // Taygeta
-    { pos: [0.6, -0.7, -0.05], size: 0.70 }, // Merope
-  ], []);
-
-  // Smaller cluster members
-  const smallStars = useMemo(() => [
-    [-0.1, 1.4, -0.15], [0.9, 1.5, 0.05], [-1.1, 0.9, 0.1],
-    [1.0, 0.5, -0.1], [-0.5, -1.1, 0.1], [2.0, 0.1, 0.2],
-    [-2.0, 0.6, -0.05], [0.3, 2.5, 0.1], [-1.8, 1.6, -0.1],
-    [1.4, 0.9, 0.15], [-0.9, -0.8, 0.0], [1.8, -0.5, -0.1],
-    [-1.3, -1.2, 0.2], [0.7, 1.9, -0.05], [-0.4, -1.8, 0.1],
-  ], []);
-
-  // Faint nebula dust cloud particles
-  const nebulaPositions = useMemo(() => {
-    const count = 400;
-    const positions = new Float32Array(count * 3);
-    for (let i = 0; i < count; i++) {
-      const r = Math.pow(Math.random(), 1.2) * 2.8;
-      const theta = Math.random() * 2 * Math.PI;
-      const phi = Math.acos(Math.random() * 2 - 1);
-      positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
-      positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta) * 0.7;
-      positions[i * 3 + 2] = r * Math.cos(phi) * 0.25;
-    }
-    return positions;
-  }, []);
-
-  useFrame((_, delta) => {
-    if (ref.current) ref.current.rotation.y += delta * 0.015;
-    const t = 1 - Math.pow(0.001, delta);
-    const target = hovered ? 1.2 : 1;
-    hoverScale.current = MathUtils.lerp(hoverScale.current, target, t);
-    if (ref.current) {
-      ref.current.scale.set(hoverScale.current, hoverScale.current, hoverScale.current);
-    }
-  });
-
-  return (
-    <group position={position} onClick={onClick}>
-      {/* Invisible hit target */}
-      <mesh
-        visible={false}
-        onPointerOver={(e) => { e.stopPropagation(); setHovered(true); document.body.style.cursor = 'pointer'; }}
-        onPointerOut={(e) => { e.stopPropagation(); setHovered(false); document.body.style.cursor = 'auto'; }}
-      >
-        <sphereGeometry args={[3.5, 16, 16]} />
-        <meshBasicMaterial />
-      </mesh>
-
-      <group ref={ref}>
-        {/* Nebula dust cloud behind the cluster */}
-        <points>
-          <bufferGeometry>
-            <bufferAttribute attach="attributes-position" array={nebulaPositions} itemSize={3} count={nebulaPositions.length / 3} />
-          </bufferGeometry>
-          <pointsMaterial size={0.09} color="#5599dd" transparent opacity={0.25} blending={THREE.AdditiveBlending} depthWrite={false} sizeAttenuation />
-        </points>
-
-        {/* Shared soft nebula glow behind the whole cluster */}
-        <mesh>
-          <sphereGeometry args={[2.2, 16, 16]} />
-          <meshBasicMaterial color="#0d3a70" transparent opacity={0.10} blending={THREE.AdditiveBlending} depthWrite={false} />
-        </mesh>
-
-        {/* Main bright sisters */}
-        {mainStars.map((star, i) => {
-          const r = 0.05 * star.size;
-          return (
-            <group key={`ms-${i}`} position={star.pos}>
-              {/* Bright white core */}
-              <mesh><sphereGeometry args={[r, 12, 12]} /><meshBasicMaterial color="#ffffff" /></mesh>
-              {/* Inner blue-white glow */}
-              <mesh><sphereGeometry args={[r * 3, 12, 12]} /><meshBasicMaterial color="#cce8ff" transparent opacity={0.7} blending={THREE.AdditiveBlending} depthWrite={false} /></mesh>
-              {/* Mid blue halo */}
-              <mesh><sphereGeometry args={[r * 7, 12, 12]} /><meshBasicMaterial color="#6699cc" transparent opacity={0.22} blending={THREE.AdditiveBlending} depthWrite={false} /></mesh>
-              {/* Subtle diffraction spikes — horizontal */}
-              <mesh><planeGeometry args={[r * 40, r * 0.35]} /><meshBasicMaterial color="#bbddff" transparent opacity={0.35} blending={THREE.AdditiveBlending} depthWrite={false} side={THREE.DoubleSide} /></mesh>
-              {/* Subtle diffraction spikes — vertical */}
-              <mesh rotation={[0, 0, Math.PI / 2]}><planeGeometry args={[r * 40, r * 0.35]} /><meshBasicMaterial color="#bbddff" transparent opacity={0.35} blending={THREE.AdditiveBlending} depthWrite={false} side={THREE.DoubleSide} /></mesh>
-            </group>
-          );
-        })}
-
-        {/* Smaller cluster members — no spikes */}
-        {smallStars.map((pos, i) => {
-          const r = 0.022;
-          return (
-            <group key={`ss-${i}`} position={pos}>
-              <mesh><sphereGeometry args={[r, 8, 8]} /><meshBasicMaterial color="#eaf4ff" /></mesh>
-              <mesh><sphereGeometry args={[r * 2.5, 8, 8]} /><meshBasicMaterial color="#99ccee" transparent opacity={0.5} blending={THREE.AdditiveBlending} depthWrite={false} /></mesh>
-            </group>
-          );
-        })}
-      </group>
-
-      {label && (
-        <Html position={[0, 4.5, 0]} center zIndexRange={[100, 0]}>
-          <div
-            className="text-white text-sm whitespace-nowrap pointer-events-none select-none transition-all duration-200"
-            style={{
-              fontFamily: '"Press Start 2P", monospace',
-              opacity: hovered ? 1 : 0.8,
-              transform: hovered ? 'scale(1.1)' : 'scale(1)',
-              filter: hovered ? 'drop-shadow(0 0 12px rgba(255,165,0,1))' : 'drop-shadow(0 0 8px rgba(255,255,255,0.8))',
-              color: hovered ? '#ffcc00' : 'white',
-            }}
-          >
-            {label}
-          </div>
-        </Html>
-      )}
-    </group>
-  );
-}
 
 function ImagePlanet({ modelPath, position, scale = 1.0, onClick, interactive = true, label }) {
   const texture = useTexture(modelPath);
@@ -1469,7 +1347,7 @@ function DreamcatcherScene({ onBack }) {
   );
 }
 
-export function HeroCanvas({ launched, sceneState, selectedPlanet, onLaunchComplete, onPeak, onLaunchStart, onReturnToEarth, onPlanetClick, onBackToSpace, cameraPos = [0, -0.5, 20], fov = 38 }) {
+export function site ({ launched, sceneState, selectedPlanet, onLaunchComplete, onPeak, onLaunchStart, onReturnToEarth, onPlanetClick, onBackToSpace, cameraPos = [0, -0.5, 20], fov = 38 }) {
   const lavaGltf = useGLTF('/just_lava.glb');
 
 
@@ -1479,13 +1357,12 @@ export function HeroCanvas({ launched, sceneState, selectedPlanet, onLaunchCompl
   const planets = useMemo(() => {
     if (sceneState === 'space') {
       const radius = 9.0;
-      const angle = (Math.PI * 2) / 5; // 5 items evenly spaced (72 degrees)
+      const angle = (Math.PI * 2) / 4; // 4 items evenly spaced (90 degrees)
       return [
         { isGroup: true, id: 'venus_mars', position: [radius * Math.cos(0 * angle), 0, radius * Math.sin(0 * angle)], label: 'Venus & Mars', onClick: () => onPlanetClick('/venus_and_mars') },
         { modelPath: '/earth.glb', position: [radius * Math.cos(1 * angle), -1.0, radius * Math.sin(1 * angle)], ringColor: null, scale: 0.45, label: 'Back into Orbit', onClick: onReturnToEarth },
         { modelPath: '/download (2).png', position: [radius * Math.cos(2 * angle), 1.0, radius * Math.sin(2 * angle)], ringColor: null, scale: 0.8, label: 'Constellations', onClick: () => onPlanetClick('/download (2).png') },
-        { isGroup: true, id: 'pleiades', position: [radius * Math.cos(3 * angle), 2.0, radius * Math.sin(3 * angle)], label: 'Pleiades', onClick: () => onPlanetClick('/pleiades') },
-        { isGroup: true, id: 'dreamcatcher', position: [radius * Math.cos(4 * angle), 0.5, radius * Math.sin(4 * angle)], label: 'Dreamcatchers', onClick: () => onPlanetClick('/dreamcatcher') },
+        { isGroup: true, id: 'dreamcatcher', position: [radius * Math.cos(3 * angle), 0.5, radius * Math.sin(3 * angle)], label: 'Dreamcatchers', onClick: () => onPlanetClick('/dreamcatcher') },
       ];
     } else {
       // Initial scene: empty (celestial bodies appear after launch into space)
@@ -1535,9 +1412,6 @@ export function HeroCanvas({ launched, sceneState, selectedPlanet, onLaunchCompl
             if (planet.isGroup && planet.id === 'venus_mars') {
               return <VenusMarsGroup key={`${sceneState}-${index}`} {...planet} />;
             }
-            if (planet.isGroup && planet.id === 'pleiades') {
-              return <PleiadesCluster key={`${sceneState}-${index}`} {...planet} />;
-            }
             if (planet.isGroup && planet.id === 'dreamcatcher') {
               return <DreamcatcherObject key={`${sceneState}-${index}`} {...planet} />;
             }
@@ -1565,11 +1439,6 @@ export function HeroCanvas({ launched, sceneState, selectedPlanet, onLaunchCompl
           {sceneState === 'presentation' && selectedPlanet === '/download (2).png' && (
             <ScrollControls horizontal pages={3} damping={0.1}>
               <ConstellationScene onBack={onBackToSpace} />
-            </ScrollControls>
-          )}
-          {sceneState === 'presentation' && selectedPlanet === '/pleiades' && (
-            <ScrollControls pages={5} damping={0.1}>
-              <PleiadesScene onBack={onBackToSpace} />
             </ScrollControls>
           )}
           {sceneState === 'presentation' && selectedPlanet === '/venus_and_mars' && (

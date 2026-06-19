@@ -148,6 +148,17 @@ export default function Home() {
       />
       <div className="absolute inset-0 bg-black pointer-events-none z-50" style={{ opacity: overlayOpacity, transition: fadeTransition }}></div>
       <div 
+        className="absolute top-16 left-1/2 -translate-x-1/2 pointer-events-none z-40 text-center w-full transition-opacity duration-1000 ease-in-out"
+        style={{ opacity: !launched && sceneState === 'earth' ? 1 : 0 }}
+      >
+        <h1 
+          className="text-white text-xl md:text-3xl lg:text-4xl drop-shadow-[0_0_10px_rgba(255,255,255,0.8)] px-4 leading-relaxed"
+          style={{ fontFamily: '"Press Start 2P", monospace' }}
+        >
+          Indigenous Beliefs About Astronomy
+        </h1>
+      </div>
+      <div 
         className="absolute bottom-16 left-1/2 -translate-x-1/2 pointer-events-none z-40 text-center w-full transition-opacity duration-1000 ease-in-out"
         style={{ opacity: !launched && sceneState === 'earth' && isModelsLoaded ? 1 : 0 }}
       >
