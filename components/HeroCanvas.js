@@ -1347,29 +1347,9 @@ function DreamcatcherScene({ onBack }) {
   );
 }
 
-export function HeroCanvas ({ launched, sceneState, selectedPlanet, onLaunchComplete, onPeak, onLaunchStart, onReturnToEarth, onPlanetClick, onBackToSpace, cameraPos = [0, -0.5, 20], fov = 38 }) {
+function LavaFloor() {
   const lavaGltf = useGLTF('/just_lava.glb');
-
-
-
-
-  const [fadeOpacity, setFadeOpacity] = useState(0);
-  const planets = useMemo(() => {
-    if (sceneState === 'space') {
-      const radius = 9.0;
-      const angle = (Math.PI * 2) / 4; // 4 items evenly spaced (90 degrees)
-      return [
-        { isGroup: true, id: 'venus_mars', position: [radius * Math.cos(0 * angle), 0, radius * Math.sin(0 * angle)], label: 'Venus & Mars', onClick: () => onPlanetClick('/venus_and_mars') },
-        { modelPath: '/earth.glb', position: [radius * Math.cos(1 * angle), -1.0, radius * Math.sin(1 * angle)], ringColor: null, scale: 0.45, label: 'Back into Orbit', onClick: onReturnToEarth },
-        { modelPath: '/download (2).png', position: [radius * Math.cos(2 * angle), 1.0, radius * Math.sin(2 * angle)], ringColor: null, scale: 0.8, label: 'Constellations', onClick: () => onPlanetClick('/download (2).png') },
-        { isGroup: true, id: 'dreamcatcher', position: [radius * Math.cos(3 * angle), 0.5, radius * Math.sin(3 * angle)], label: 'Dreamcatchers', onClick: () => onPlanetClick('/dreamcatcher') },
-      ];
-    } else {
-      // Initial scene: empty (celestial bodies appear after launch into space)
-      return [];
-    }
-  }, [sceneState, onPlanetClick, onReturnToEarth]);
-
+  
   const lavaTiles = useMemo(() => {
     const tiles = [];
     const tileCount = 5;
@@ -1386,6 +1366,34 @@ export function HeroCanvas ({ launched, sceneState, selectedPlanet, onLaunchComp
     }
     return <>{tiles}</>;
   }, [lavaGltf]);
+
+  return (
+    <>
+      <primitive object={lavaGltf.scene.clone()} scale={4000} position={[0, -10, 0]} />
+      {lavaTiles}
+    </>
+  );
+}
+
+useGLTF.preload('/just_lava.glb');
+
+export function HeroCanvas ({ launched, sceneState, selectedPlanet, onLaunchComplete, onPeak, onLaunchStart, onReturnToEarth, onPlanetClick, onBackToSpace, cameraPos = [0, -0.5, 20], fov = 38 }) {
+  const [fadeOpacity, setFadeOpacity] = useState(0);
+  const planets = useMemo(() => {
+    if (sceneState === 'space') {
+      const radius = 9.0;
+      const angle = (Math.PI * 2) / 4; // 4 items evenly spaced (90 degrees)
+      return [
+        { isGroup: true, id: 'venus_mars', position: [radius * Math.cos(0 * angle), 0, radius * Math.sin(0 * angle)], label: 'Venus & Mars', onClick: () => onPlanetClick('/venus_and_mars') },
+        { modelPath: '/earth.glb', position: [radius * Math.cos(1 * angle), -1.0, radius * Math.sin(1 * angle)], ringColor: null, scale: 0.45, label: 'Back into Orbit', onClick: onReturnToEarth },
+        { modelPath: '/download (2).png', position: [radius * Math.cos(2 * angle), 1.0, radius * Math.sin(2 * angle)], ringColor: null, scale: 0.8, label: 'Constellations', onClick: () => onPlanetClick('/download (2).png') },
+        { isGroup: true, id: 'dreamcatcher', position: [radius * Math.cos(3 * angle), 0.5, radius * Math.sin(3 * angle)], label: 'Dreamcatchers', onClick: () => onPlanetClick('/dreamcatcher') },
+      ];
+    } else {
+      // Initial scene: empty (celestial bodies appear after launch into space)
+      return [];
+    }
+  }, [sceneState, onPlanetClick, onReturnToEarth]);
 
   return (
     <div className="h-screen w-full overflow-hidden bg-[#0f172a]">
@@ -1421,10 +1429,7 @@ export function HeroCanvas ({ launched, sceneState, selectedPlanet, onLaunchComp
           })}
           {sceneState !== 'presentation' && (
             <>
-              {/* Lava floor */}
-              <primitive object={lavaGltf.scene.clone()} scale={4000} position={[0, -10, 0]} />
-              {/* Tiled lava floor */}
-              {lavaTiles}
+              <LavaFloor />
               <Astronaut
                 launched={launched}
                 sceneState={sceneState}
