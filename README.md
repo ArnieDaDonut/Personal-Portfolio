@@ -53,3 +53,11 @@ Akshat - Earth, Venus
 kongle - Mars
 jeremiahjordantaylor - Dreamcatcher
 
+## AI Declaration
+
+AI was used to:
+- Create an architecture of files.
+- Create hard animations, such as the astronaut falling.
+- Create page transitions.
+- Generate ideas for what sections to create.
+
