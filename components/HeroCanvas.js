@@ -1347,7 +1347,7 @@ function DreamcatcherScene({ onBack }) {
   );
 }
 
-export function site ({ launched, sceneState, selectedPlanet, onLaunchComplete, onPeak, onLaunchStart, onReturnToEarth, onPlanetClick, onBackToSpace, cameraPos = [0, -0.5, 20], fov = 38 }) {
+export function HeroCanvas ({ launched, sceneState, selectedPlanet, onLaunchComplete, onPeak, onLaunchStart, onReturnToEarth, onPlanetClick, onBackToSpace, cameraPos = [0, -0.5, 20], fov = 38 }) {
   const lavaGltf = useGLTF('/just_lava.glb');
 
 
